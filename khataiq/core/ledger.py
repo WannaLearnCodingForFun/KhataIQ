@@ -42,8 +42,9 @@ def normalize_narration(text: str) -> str:
     Also remove spaces around '/' so 'UPI / ZOMATO' == 'UPI/ZOMATO'.
     Example: '  upi / Zomato   123 ' -> 'UPI/ZOMATO 123'
     """
-    # TODO
-    raise NotImplementedError
+    collapsed = " ".join(text.split())
+    no_slash_spaces = re.sub(r" ?/ ?", "/", collapsed)
+    return no_slash_spaces.upper()
 
 
 def fingerprint(txn: Txn) -> str:
