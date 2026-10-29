@@ -58,8 +58,15 @@ def fingerprint(txn: Txn) -> str:
     Think: why does including balance_after_paise let two genuine identical
     Rs 500 payments on the same day get different fingerprints?
     """
-    # TODO
-    raise NotImplementedError
+    parts = [
+        str(txn.account_id),
+        txn.txn_date.isoformat(),
+        str(txn.amount_paise),
+        txn.direction,
+        normalize_narration(txn.narration),
+        str(txn.balance_after_paise),
+    ]
+    return hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()
 
 
 # --------------------------------------------------------------------------
