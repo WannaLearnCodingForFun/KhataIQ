@@ -87,7 +87,7 @@ and `tests/test_parsers.py`.
     new open flags (dedupe by rule + sorted txn ids).
 
 ## M6 — Metrics, transactions view, assessments
-- [ ] **M6.1** `metrics/monthly.py`: pure functions computing gross inflow, net business inflow,
+- [x] **M6.1** `metrics/monthly.py`: pure functions computing gross inflow, net business inflow,
   uncertain amount, outflow, obligations (labels `emi`, `rent`, `salary_paid`), closing balance,
   volatility (coefficient of variation of daily net flow, in basis points, int).
   - Property test: net business inflow ≤ gross inflow; uncertain ≥ 0; sums match the ledger.
