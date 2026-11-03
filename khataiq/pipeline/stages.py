@@ -143,3 +143,4 @@ register_stage("reconcile", stage_reconcile, UploadStatus.PARSED)
 
 # Later stages live in their own modules; importing them here registers them in order.
 import khataiq.pipeline.stage_evidence  # noqa: E402, F401
+import khataiq.pipeline.stage_metrics  # noqa: E402, F401

@@ -35,7 +35,7 @@ TOLERANCE_PERCENT = 10
 
 
 @dataclass
-class _Edge:
+class Edge:
     total_paise: int = 0
     txn_ids: list[int] = field(default_factory=list)
     dates: list[date] = field(default_factory=list)
@@ -89,10 +89,19 @@ def find_cycles(txns: list[LedgerTxn],
     return sorted(findings.values(), key=lambda f: (f.window_start, f.txn_ids))
 
 
+def build_graph(txns: list[LedgerTxn], self_transfers: list[tuple[int, int]], start: date,
+                end: date) -> dict[tuple[str, str], Edge]:
+    """The money-flow graph for [start, end): what the cycle rule sees, and what the evidence
+    view draws."""
+    by_id = {t.id: t for t in txns}
+    internal = {i for pair in self_transfers for i in pair}
+    return _window_graph(by_id, internal, self_transfers, start, end)
+
+
 def _window_graph(by_id: dict[int, LedgerTxn], internal: set[int],
                   self_transfers: list[tuple[int, int]], start: date,
-                  end: date) -> dict[tuple[str, str], _Edge]:
-    graph: dict[tuple[str, str], _Edge] = defaultdict(_Edge)
+                  end: date) -> dict[tuple[str, str], Edge]:
+    graph: dict[tuple[str, str], Edge] = defaultdict(Edge)
 
     def add(u: str, v: str, t: LedgerTxn) -> None:
         edge = graph[(u, v)]
@@ -116,7 +125,7 @@ def _window_graph(by_id: dict[int, LedgerTxn], internal: set[int],
     return graph
 
 
-def _window_cycles(graph: dict[tuple[str, str], _Edge], start: date,
+def _window_cycles(graph: dict[tuple[str, str], Edge], start: date,
                    end: date) -> list[CycleFinding]:
     adjacency: dict[str, list[str]] = defaultdict(list)
     for u, v in sorted(graph):
@@ -137,7 +146,7 @@ def _window_cycles(graph: dict[tuple[str, str], _Edge], start: date,
     return found
 
 
-def _assess(cycle: list[str], graph: dict[tuple[str, str], _Edge], start: date,
+def _assess(cycle: list[str], graph: dict[tuple[str, str], Edge], start: date,
             end: date) -> CycleFinding | None:
     if not cycle[0].startswith("ACCT:"):
         return None

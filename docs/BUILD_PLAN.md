@@ -91,7 +91,7 @@ and `tests/test_parsers.py`.
   uncertain amount, outflow, obligations (labels `emi`, `rent`, `salary_paid`), closing balance,
   volatility (coefficient of variation of daily net flow, in basis points, int).
   - Property test: net business inflow ≤ gross inflow; uncertain ≥ 0; sums match the ledger.
-- [ ] **M6.2** Metrics stage + `GET /v1/businesses/{id}/metrics`, `GET /v1/businesses/{id}/transactions`
+- [x] **M6.2** Metrics stage + `GET /v1/businesses/{id}/metrics`, `GET /v1/businesses/{id}/transactions`
   (filters: date range, label, evidence level, account; cursor pagination), `GET /v1/businesses/{id}/graph`.
 - [ ] **M6.3** Assessments state machine: draft → in_review → approved|rejected; in_review → draft;
   nothing leaves approved/rejected. DB trigger also blocks illegal transitions.

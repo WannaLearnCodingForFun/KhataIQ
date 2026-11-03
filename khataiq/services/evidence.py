@@ -27,14 +27,27 @@ from khataiq.models import (
     Upload,
     UploadRow,
 )
-from khataiq.models.enums import EvidenceKind, EvidenceLevel, FlagKind, UploadStatus
+from khataiq.models.enums import (
+    EvidenceKind,
+    EvidenceLevel,
+    FlagKind,
+    LabelMethod,
+    TxnLabel,
+    UploadStatus,
+    pg_enum,
+)
 from khataiq.services.flags import open_flag
 
 LEDGER_STATUSES = (UploadStatus.RECONCILED, UploadStatus.PROCESSED)
 
 # The view is read-only and owned by migrations, so it isn't an ORM model (that would make
 # Alembic try to create it as a table).
-current_labels = table("current_txn_labels", column("txn_id"), column("label"))
+current_labels = table(
+    "current_txn_labels",
+    column("txn_id"),
+    column("label", pg_enum(TxnLabel, "txn_label")),
+    column("method", pg_enum(LabelMethod, "label_method")),
+)
 
 
 def load_ledger(s: Session, business_id: int) -> tuple[list[LedgerTxn], list[AccountInfo]]:
@@ -56,7 +69,7 @@ def load_ledger(s: Session, business_id: int) -> tuple[list[LedgerTxn], list[Acc
                       direction=t.direction.value, balance_after_paise=t.balance_after_paise,
                       narration_norm=t.narration_norm, utr=t.utr,
                       counterparty_key=t.counterparty_key, fingerprint=t.fingerprint,
-                      label=label)
+                      label=label.value if label is not None else None)
             for t, label in rows]
     return txns, [AccountInfo(a.id, a.account_mask, a.upi_id) for a in accounts]
 

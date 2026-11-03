@@ -5,7 +5,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from khataiq.models.enums import EvidenceKind, EvidenceLevel, FlagKind, FlagStatus
+from khataiq.models.enums import EvidenceKind, EvidenceLevel, FlagKind, FlagStatus, TxnLabel
 
 
 class TransactionOut(BaseModel):
@@ -73,3 +73,57 @@ class EvidenceLinkOut(BaseModel):
 class EvidenceOut(BaseModel):
     run_id: int | None
     links: list[EvidenceLinkOut]
+
+
+class MonthOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    month: date
+    gross_inflow_paise: int
+    net_business_inflow_paise: int
+    uncertain_paise: int
+    outflow_paise: int
+    obligations_paise: int
+    closing_balance_paise: int | None
+    volatility_bp: int
+
+
+class MetricsOut(BaseModel):
+    run_id: int | None
+    evidence_run_id: int | None
+    computed_at: datetime | None
+    months: list[MonthOut]
+
+
+class RelabelIn(BaseModel):
+    label: TxnLabel
+    note: str | None = Field(default=None, max_length=2000)
+
+
+class GraphNodeOut(BaseModel):
+    id: str
+    label: str
+    kind: Literal["account", "counterparty"]
+
+
+class GraphEdgeOut(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    from_: str = Field(alias="from", serialization_alias="from")
+    to: str
+    total_paise: int
+    txn_ids: list[int]
+
+
+class GraphWindowOut(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    from_: date = Field(alias="from", serialization_alias="from")
+    to: date
+
+
+class GraphOut(BaseModel):
+    nodes: list[GraphNodeOut]
+    edges: list[GraphEdgeOut]
+    window: GraphWindowOut
+    cycles: list[list[str]]
