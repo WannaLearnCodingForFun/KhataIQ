@@ -7,7 +7,7 @@ Run with `ops/load/run.sh 50 120s` (Locust, `ops/load/locustfile.py`) on 2026-11
 - **50 concurrent users for 120 s**, ramped at 10/s: 40 officers (overview + metrics, transaction pages,
   review queue + a flag, the money-flow graph; 0.5–2 s think time) and 10 owners (each uploads a
   freshly generated one-week statement every 5–15 s and polls its status every 2 s, like the UI).
-- Data: the seeded dev org plus six months of synthetic history (≈ 1,100 transactions, 2 accounts)
+- Data: the seeded dev org plus six months of synthetic history (578 transactions in 3 statements, 2 accounts)
   for the business the officers read.
 - **Rate limits were raised for this run** so it measures the application, not the limiter. With the
   production limits (60 req/min per user) these users would be throttled long before the server is.
