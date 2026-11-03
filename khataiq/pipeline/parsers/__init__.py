@@ -6,9 +6,11 @@ from khataiq.pipeline.parsers.base import Parser
 from khataiq.pipeline.parsers.configs import ALL_CSV_CONFIGS
 from khataiq.pipeline.parsers.demo_csv import DemoBankCsvParser
 from khataiq.pipeline.parsers.generic_csv import GenericCsvParser
+from khataiq.pipeline.parsers.pdf_text import DemoBankPdfParser
 
 ALL_PARSERS: list[Parser] = [
     DemoBankCsvParser(),
+    DemoBankPdfParser(),
     *(GenericCsvParser(config) for config in ALL_CSV_CONFIGS),
 ]
 
