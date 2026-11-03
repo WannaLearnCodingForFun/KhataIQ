@@ -24,6 +24,8 @@ class Settings(BaseSettings):
 
     redis_url: str = "redis://localhost:6379/0"
 
+    storage_backend: str = "s3"  # s3 | local (a directory; handy for tests and offline dev)
+    local_storage_dir: str = ".data/objects"
     s3_endpoint: str | None = "http://localhost:9000"  # None/empty = real AWS S3
     s3_access_key: str = "khataiq"
     s3_secret_key: SecretStr = SecretStr("khataiq-dev-secret")

@@ -7,7 +7,8 @@ and upload it belongs to, and its content hash.
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Any
+from pathlib import Path
+from typing import Any, Protocol
 
 import boto3
 from botocore.config import Config
@@ -18,6 +19,36 @@ from khataiq.config import get_settings
 
 def upload_key(org_id: int, upload_id: int, sha256: str) -> str:
     return f"org/{org_id}/upload/{upload_id}/{sha256}"
+
+
+class Store(Protocol):
+    def put_object(self, key: str, data: bytes, content_type: str) -> None: ...
+    def get_object(self, key: str) -> bytes: ...
+    def exists(self, key: str) -> bool: ...
+
+
+class LocalObjectStore:
+    """Files under a directory, same key layout. For tests and offline development only."""
+
+    def __init__(self, root: str) -> None:
+        self.root = Path(root)
+
+    def _path(self, key: str) -> Path:
+        path = (self.root / key).resolve()
+        if self.root.resolve() not in path.parents:
+            raise ValueError(f"key escapes the storage root: {key!r}")
+        return path
+
+    def put_object(self, key: str, data: bytes, content_type: str) -> None:
+        path = self._path(key)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+
+    def get_object(self, key: str) -> bytes:
+        return self._path(key).read_bytes()
+
+    def exists(self, key: str) -> bool:
+        return self._path(key).is_file()
 
 
 class ObjectStore:
@@ -50,8 +81,10 @@ class ObjectStore:
 
 
 @lru_cache
-def get_store() -> ObjectStore:
+def get_store() -> Store:
     settings = get_settings()
+    if settings.storage_backend == "local":
+        return LocalObjectStore(settings.local_storage_dir)
     client = boto3.client(
         "s3",
         endpoint_url=settings.s3_endpoint or None,

@@ -27,7 +27,7 @@ from khataiq.db import Base, get_engine, get_sessionmaker
 if TYPE_CHECKING:
     from fastapi.testclient import TestClient
 
-    from khataiq.storage import ObjectStore
+    from khataiq.storage import ObjectStore, Store
 
 TEST_DB_URL = os.environ.get("KHATAIQ_TEST_DATABASE_URL")
 APP_PASSWORD = "khataiq_app"
@@ -206,5 +206,19 @@ def s3(monkeypatch: pytest.MonkeyPatch) -> Iterator[ObjectStore]:
     get_store.cache_clear()
     with mock_aws():
         yield get_store()
+    get_settings.cache_clear()
+    get_store.cache_clear()
+
+
+@pytest.fixture()
+def local_store(tmp_path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Store]:
+    """Object storage in a temp directory (works across processes, unlike moto)."""
+    from khataiq.storage import get_store
+
+    monkeypatch.setenv("KHATAIQ_STORAGE_BACKEND", "local")
+    monkeypatch.setenv("KHATAIQ_LOCAL_STORAGE_DIR", str(tmp_path / "objects"))
+    get_settings.cache_clear()
+    get_store.cache_clear()
+    yield get_store()
     get_settings.cache_clear()
     get_store.cache_clear()

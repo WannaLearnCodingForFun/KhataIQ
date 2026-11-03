@@ -62,11 +62,11 @@ and `tests/test_parsers.py`.
 - [x] **M3.3** `GET /v1/uploads/{id}` status endpoint, including reconciliation break details.
 
 ## M4 — Pipeline
-- [ ] **M4.1** `pipeline/celery_app.py`, beat schedule, outbox relay task with `FOR UPDATE SKIP LOCKED`.
+- [x] **M4.1** `pipeline/celery_app.py`, beat schedule, outbox relay task with `FOR UPDATE SKIP LOCKED`.
   - Test: two relays running at once publish each outbox row exactly once.
-- [ ] **M4.2** Stage framework: `run_stage(upload_id, stage)` records `pipeline_runs`, applies retry
+- [x] **M4.2** Stage framework: `run_stage(upload_id, stage)` records `pipeline_runs`, applies retry
   policy (2/4/8/16/32 s, 5 attempts → dead), sets tenant context, chains to the next stage.
-- [ ] **M4.3** Stages parse → normalize+persist → reconcile, using the M0 parsers and `core.ledger`.
+- [x] **M4.3** Stages parse → normalize+persist → reconcile, using the M0 parsers and `core.ledger`.
   - Test: running the whole chain twice on the same upload leaves identical DB state (row counts + hashes).
   - Test: an unbalanced fixture stops at reconcile, sets `needs_review`, opens a flag, runs nothing after.
   - Test: overlapping statements (Oct 1–31, then Oct 15–Nov 15) produce no duplicate transactions.

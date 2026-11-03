@@ -20,6 +20,10 @@ File layout (see tests/fixtures/demo_bank/statement_oct.csv):
 
 from __future__ import annotations
 
+import csv
+import io
+from datetime import date
+
 from khataiq.pipeline.normalize import extract_utr
 from khataiq.pipeline.parsers.base import ParsedRow, ParsedStatement, ParseError
 from khataiq.pipeline.parsers.csv_common import (
@@ -83,3 +87,33 @@ class DemoBankCsvParser:
             narration=narration,
             utr=extract_utr(narration),
         )
+
+
+def _rupees(paise: int) -> str:
+    rupees, rest = divmod(paise, 100)
+    return f"{rupees}.{rest:02d}"
+
+
+def render_demo_csv(opening_paise: int,
+                    rows: list[tuple[date, str, int, int]]) -> bytes:
+    """Write a statement in this parser's format. rows are (date, narration, debit_paise,
+    credit_paise) with exactly one of the two amounts non-zero; balances are computed.
+
+    The inverse of parse(), used by tests and the synthetic data generator.
+    """
+    buffer = io.StringIO()
+    writer = csv.writer(buffer, lineterminator="\n")
+    writer.writerow(["Opening Balance", _rupees(opening_paise)])
+    writer.writerow(HEADER)
+    balance = opening_paise
+    for txn_date, narration, debit, credit in rows:
+        if (debit > 0) == (credit > 0):
+            raise ValueError("exactly one of debit or credit must be positive")
+        balance += credit - debit
+        if balance < 0:
+            raise ValueError("the demo bank has no overdraft: balance went negative")
+        writer.writerow([txn_date.strftime("%d/%m/%Y"), narration,
+                         _rupees(debit) if debit else "", _rupees(credit) if credit else "",
+                         _rupees(balance)])
+    writer.writerow(["Closing Balance", _rupees(balance)])
+    return buffer.getvalue().encode()
