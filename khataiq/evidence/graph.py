@@ -70,16 +70,19 @@ def strongly_connected_components(nodes: Iterable[N],
 
 
 def bounded_simple_cycles(component: Iterable[N], edges: Mapping[N, Sequence[N]],
-                          max_length: int, limit: int, order: Mapping[N, int]) -> list[list[N]]:
+                          max_length: int, limit: int, order: Mapping[N, int],
+                          roots: Iterable[N] | None = None) -> list[list[N]]:
     """Simple cycles of at most max_length nodes inside one component, at most limit of them.
 
     Each cycle is found exactly once, rooted at its lowest node by `order`: a search from
     start s only visits nodes ordered after s (the idea behind Johnson's algorithm, without
-    its blocking sets, which a depth bound of 4 doesn't need).
+    its blocking sets, which a depth bound of 4 doesn't need). With roots, only cycles whose
+    lowest node is one of them are searched for.
     """
     members = set(component)
+    starts = members if roots is None else members & set(roots)
     cycles: list[list[N]] = []
-    for start in sorted(members, key=order.__getitem__):
+    for start in sorted(starts, key=order.__getitem__):
         floor = order[start]
         path = [start]
         on_path = {start}

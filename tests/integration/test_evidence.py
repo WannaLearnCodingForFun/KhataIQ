@@ -198,3 +198,64 @@ def test_business_evidence_endpoint(api, people: People, flagged, owner_session:
     business_id = owner_session.scalar(select(Flag.business_id))
     r = api.get(f"/v1/businesses/{business_id}/evidence", headers=login(api, people.officer))
     assert r.status_code == 200 and r.json()["run_id"] is not None
+
+
+def test_flag_is_superseded_when_a_later_statement_explains_it(owner_session: Session):
+    """Account 1's statement alone looks like money out to 'MEENA PILLAI' and back; account
+    2's statement shows both legs were transfers between the owner's own accounts."""
+    from khataiq.models import AuditLog
+
+    shop = make_shop(owner_session, masks=("1234", "5678"))
+    acct1, acct2 = shop.account_ids
+    upload(shop, render_demo_csv(10_000_000, [
+        (day(2), "NEFT/HDFC0001234/MEENA PILLAI", 2_000_000, 0),
+        (day(9), "NEFT/HDFC0001234/MEENA PILLAI", 0, 2_000_000)]), acct1)
+    run_pipeline()
+    flag = owner_session.scalars(select(Flag)).one()
+    assert (flag.kind, flag.status) == (FlagKind.CYCLE, FlagStatus.OPEN)
+
+    upload(shop, render_demo_csv(5_000_000, [
+        (day(2), "NEFT/SBIN0004321/MEENA PILLAI", 0, 2_000_000),
+        (day(9), "NEFT/SBIN0004321/MEENA PILLAI", 2_000_000, 0)]), acct2)
+    run_pipeline()
+    owner_session.expire_all()
+    flag = owner_session.get(Flag, flag.id)
+    assert flag.status == FlagStatus.DISMISSED and flag.resolved_by is None
+    assert "no longer finds this" in flag.resolution_note
+    assert owner_session.scalar(select(AuditLog.id).where(
+        AuditLog.action == "flag.superseded", AuditLog.entity_id == flag.id)) is not None
+
+
+def test_superseding_never_touches_a_decided_flag(owner_session: Session):
+    shop = make_shop(owner_session, masks=("1234", "5678"))
+    acct1, acct2 = shop.account_ids
+    upload(shop, render_demo_csv(10_000_000, [
+        (day(2), "NEFT/HDFC0001234/MEENA PILLAI", 2_000_000, 0),
+        (day(9), "NEFT/HDFC0001234/MEENA PILLAI", 0, 2_000_000)]), acct1)
+    run_pipeline()
+    owner_session.execute(text("UPDATE flags SET status = 'confirmed', resolution_note = 'x'"))
+    owner_session.commit()
+    upload(shop, render_demo_csv(5_000_000, [
+        (day(2), "NEFT/SBIN0004321/MEENA PILLAI", 0, 2_000_000),
+        (day(9), "NEFT/SBIN0004321/MEENA PILLAI", 2_000_000, 0)]), acct2)
+    run_pipeline()
+    owner_session.expire_all()
+    assert owner_session.scalars(select(Flag.status)).all() == [FlagStatus.CONFIRMED]
+
+
+def test_a_superseded_flag_reopens_when_the_finding_returns(owner_session: Session):
+    from khataiq.services import flags as flag_service
+
+    shop = make_shop(owner_session)
+    upload(shop, render_demo_csv(10_000_000, [
+        (day(2), "NEFT DR-HDFC0001234-RAVI TRADERS-ADV", 2_500_000, 0),
+        (day(9), "NEFT CR-HDFC0001234-RAVI TRADERS-ADV RET", 0, 2_400_000)]))
+    run_pipeline()
+    flag_id = owner_session.scalar(select(Flag.id))
+    with tenant_session(shop.owner.org_id) as s:  # as if a run had stopped finding it
+        flag_service.supersede_stale(s, org_id=shop.owner.org_id, business_id=shop.business_id,
+                                     kinds=[FlagKind.CYCLE], current_keys=set(), run_id=0)
+    with tenant_session(shop.owner.org_id) as s:
+        run_evidence(s, shop.business_id)
+    owner_session.expire_all()
+    assert owner_session.get(Flag, flag_id).status == FlagStatus.OPEN

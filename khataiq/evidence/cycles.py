@@ -9,8 +9,9 @@ For each 30-day window (windows start on the 1st and the 16th of every month, so
      verified reversals are left out (a refunded payment is a round trip that is already
      explained, not circular money).
   2. Strongly connected components (iterative Tarjan).
-  3. In each component with 2+ nodes: simple cycles through an account node, up to 4 hops,
-     at most 50 per component.
+  3. In each component with 2+ nodes: simple cycles through an account node, up to 4 hops.
+     At most 50 are *reported* per component; the search itself has a larger work budget, so
+     cycles that can never be reported (account <-> account loops) can't use up the 50.
   4. A cycle is reported when money out (account -> counterparty edges on it) and money back
      (counterparty -> account edges) are within 10% of each other and the money out is at
      least Rs 10,000.
@@ -31,7 +32,8 @@ from khataiq.evidence.types import LedgerTxn
 RULE_ID, RULE_VERSION = "CYCLE", 1
 WINDOW_DAYS = 30
 MAX_HOPS = 4
-MAX_CYCLES_PER_COMPONENT = 50
+MAX_CYCLES_PER_COMPONENT = 50  # reported
+SEARCH_BUDGET_PER_COMPONENT = 5_000  # enumerated, to keep a pathological graph bounded
 MIN_TOTAL_PAISE = 1_000_000
 TOLERANCE_PERCENT = 10
 
@@ -50,7 +52,8 @@ class CycleFinding:
     path: tuple[str, ...]  # nodes in order; the last node links back to the first
     out_paise: int
     back_paise: int
-    txn_ids: tuple[int, ...]
+    txn_ids: tuple[int, ...]  # every row on the cycle's edges
+    external_txn_ids: tuple[int, ...]  # rows on account <-> counterparty edges: its identity
     first_date: date
     last_date: date
 
@@ -88,7 +91,9 @@ def find_cycles(txns: list[LedgerTxn], self_transfers: list[tuple[int, int]],
         end = start + timedelta(days=WINDOW_DAYS)
         graph = _window_graph(by_id, internal, self_transfers, start, end)
         for finding in _window_cycles(graph, start, end):
-            findings.setdefault(finding.txn_ids, finding)  # same txns in two windows: once
+            # The same flow seen from two overlapping windows (perhaps with different internal
+            # transfers attached) is reported once, by its counterparty legs.
+            findings.setdefault(finding.external_txn_ids, finding)
     return sorted(findings.values(), key=lambda f: (f.window_start, f.txn_ids))
 
 
@@ -139,13 +144,19 @@ def _window_cycles(graph: dict[tuple[str, str], Edge], start: date,
                                                                      n)))}
     found = []
     for component in strongly_connected_components(nodes, adjacency):
-        if len(component) < 2 or not any(n.startswith("ACCT:") for n in component):
+        accounts = [n for n in component if n.startswith("ACCT:")]
+        if len(component) < 2 or not accounts:
             continue
+        reported = 0
+        # Accounts sort first, so rooting at accounts finds exactly the cycles through one.
         for cycle in bounded_simple_cycles(component, adjacency, MAX_HOPS,
-                                           MAX_CYCLES_PER_COMPONENT, order):
+                                           SEARCH_BUDGET_PER_COMPONENT, order, roots=accounts):
             finding = _assess(cycle, graph, start, end)
             if finding is not None:
                 found.append(finding)
+                reported += 1
+                if reported >= MAX_CYCLES_PER_COMPONENT:
+                    break
     return found
 
 
@@ -163,8 +174,11 @@ def _assess(cycle: list[str], graph: dict[tuple[str, str], Edge], start: date,
     if abs(out - back) * 100 > TOLERANCE_PERCENT * max(out, back):
         return None
     ids = tuple(sorted({i for h in hops for i in graph[h].txn_ids}))
+    external = tuple(sorted({i for h in hops for i in graph[h].txn_ids
+                             if h[0].startswith("ACCT:") != h[1].startswith("ACCT:")}))
     dates = [d for h in hops for d in graph[h].dates]
-    return CycleFinding(start, end, tuple(cycle), out, back, ids, min(dates), max(dates))
+    return CycleFinding(start, end, tuple(cycle), out, back, ids, external, min(dates),
+                        max(dates))
 
 
 def describe(finding: CycleFinding) -> str:

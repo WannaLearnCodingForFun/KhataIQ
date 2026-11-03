@@ -36,7 +36,7 @@ from khataiq.models.enums import (
     UploadStatus,
     pg_enum,
 )
-from khataiq.services.flags import open_flag
+from khataiq.services.flags import dedupe_key, open_flag, supersede_stale
 
 LEDGER_STATUSES = (UploadStatus.RECONCILED, UploadStatus.PROCESSED)
 
@@ -104,7 +104,9 @@ def run_evidence(s: Session, business_id: int) -> EvidenceResult:
 
     by_id = {t.id: t for t in txns}
     opened = 0
+    current_keys: set[str] = set()
     for group in _unresolved_transfer_groups(transfers):
+        current_keys.add(dedupe_key("SELF_TRANSFER", 1, sorted(group)))
         amount = max(by_id[i].amount_paise for i in group)
         if open_flag(s, org_id=business.org_id, business_id=business_id,
                      kind=FlagKind.UNRESOLVED_TRANSFER, rule_id="SELF_TRANSFER", rule_version=1,
@@ -116,15 +118,21 @@ def run_evidence(s: Session, business_id: int) -> EvidenceResult:
     pairs = [(link.txn_a, link.txn_b) for link in transfers if link.txn_b is not None]
     found = cycles.find_cycles(txns, pairs, explained_by_reversals(reversals))
     for finding in found:
+        current_keys.add(dedupe_key(cycles.RULE_ID, cycles.RULE_VERSION,
+                                    list(finding.external_txn_ids)))
         if open_flag(s, org_id=business.org_id, business_id=business_id, kind=FlagKind.CYCLE,
                      rule_id=cycles.RULE_ID, rule_version=cycles.RULE_VERSION,
                      summary=cycles.describe(finding), total_paise=finding.out_paise,
                      txn_ids=list(finding.txn_ids),
+                     identity_ids=list(finding.external_txn_ids),
                      details={"path": list(finding.path),
                               "window": [finding.window_start.isoformat(),
                                          finding.window_end.isoformat()],
                               "back_paise": finding.back_paise}):
             opened += 1
+    supersede_stale(s, org_id=business.org_id, business_id=business_id,
+                    kinds=[FlagKind.UNRESOLVED_TRANSFER, FlagKind.CYCLE],
+                    current_keys=current_keys, run_id=run.id)
     return EvidenceResult(run.id, links, found, opened)
 
 

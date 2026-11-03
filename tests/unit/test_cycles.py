@@ -142,3 +142,19 @@ def test_a_verified_refund_is_not_a_cycle():
     out, back = round_trip(2_000_000, 2_000_000, back_day=4)
     assert len(find_cycles([out, back], [])) == 1
     assert find_cycles([out, back], [], frozenset({out.id, back.id})) == []
+
+
+def test_cycles_that_fail_the_amount_test_do_not_use_up_the_cap():
+    """60 round trips that can never be reported (money back is far off money out) are found
+    before the real one in search order; they must not use up the 50 reported cycles."""
+    from khataiq.evidence import cycles as cycle_rule
+
+    rows = []
+    for i in range(60):
+        cp = f"name:AA{i:02d}"  # sorts before ALPHA, so the search meets these first
+        rows.append(lt(account=1, day=1, direction="debit", amount=5_000_000, cp=cp))
+        rows.append(lt(account=1, day=2, amount=100_000, cp=cp))
+    out = lt(account=1, day=2, direction="debit", amount=2_000_000, cp="name:ALPHA")
+    back = lt(account=1, day=6, amount=2_000_000, cp="name:ALPHA")
+    findings = cycle_rule.find_cycles(rows + [out, back], [])
+    assert [f.path for f in findings] == [("ACCT:1", "name:ALPHA")]

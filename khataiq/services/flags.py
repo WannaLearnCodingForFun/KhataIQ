@@ -26,15 +26,20 @@ def dedupe_key(rule_id: str, rule_version: int, txn_ids: list[int],
 def open_flag(s: Session, *, org_id: int, business_id: int, kind: FlagKind, rule_id: str,
               rule_version: int, summary: str, total_paise: int, txn_ids: list[int],
               upload_id: int | None = None, scope: str | None = None,
+              identity_ids: list[int] | None = None,
               details: dict[str, Any] | None = None) -> Flag | None:
     """Create a flag with its evidence rows, unless one with the same identity exists
     (open, confirmed or dismissed: a dismissed flag stays dismissed). Returns the new flag or
-    None if it already existed."""
+    None if it already existed. identity_ids, if given, define the identity instead of all
+    the evidence rows."""
     if not txn_ids:
         raise ValueError("a flag needs at least one evidence transaction")
-    key = dedupe_key(rule_id, rule_version, txn_ids, scope)
-    if s.scalar(select(Flag.id).where(Flag.business_id == business_id,
-                                      Flag.dedupe_key == key)) is not None:
+    key = dedupe_key(rule_id, rule_version, identity_ids or txn_ids, scope)
+    existing = s.scalar(select(Flag).where(Flag.business_id == business_id,
+                                           Flag.dedupe_key == key))
+    if existing is not None:
+        if _was_superseded(existing):
+            _reopen(s, existing)
         return None
     flag = Flag(org_id=org_id, business_id=business_id, upload_id=upload_id, kind=kind,
                 summary=summary, total_paise=total_paise, rule_id=rule_id,
@@ -99,3 +104,47 @@ def resolve_flag(s: Session, actor: Principal, flag_id: int, status: FlagStatus,
                  entity_type="flag", entity_id=flag.id, before=before,
                  after={"status": status, "note": flag.resolution_note})
     return flag
+
+
+SUPERSEDED_PREFIX = "Closed automatically"
+SUPERSEDED_NOTE = (SUPERSEDED_PREFIX + ": evidence run {run} no longer finds this, usually "
+                   "because more statements arrived and explained the money.")
+
+
+def _was_superseded(flag: Flag) -> bool:
+    """Closed by the system, not decided by an officer."""
+    return (flag.status == FlagStatus.DISMISSED and flag.resolved_by is None
+            and (flag.resolution_note or "").startswith(SUPERSEDED_PREFIX))
+
+
+def _reopen(s: Session, flag: Flag) -> None:
+    """The data changed again and the finding is back: an officer's dismissal would stand,
+    but the system's own closure doesn't."""
+    flag.status = FlagStatus.OPEN
+    flag.resolved_at = None
+    flag.resolution_note = None
+    audit.record(s, org_id=flag.org_id, actor_id=None, action="flag.reopened",
+                 entity_type="flag", entity_id=flag.id, before={"status": FlagStatus.DISMISSED},
+                 after={"status": FlagStatus.OPEN})
+
+
+def supersede_stale(s: Session, *, org_id: int, business_id: int, kinds: list[FlagKind],
+                    current_keys: set[str], run_id: int) -> int:
+    """Close open flags of these kinds that the latest evidence run no longer produces.
+
+    Evidence runs after every upload, so a flag can be raised while only one account's
+    statement is in and the other leg of a transfer is still missing. Leaving it open would
+    ask an officer to review something the data has since explained. Flags an officer already
+    confirmed or dismissed are never touched.
+    """
+    stale = s.scalars(select(Flag).where(Flag.business_id == business_id,
+                                         Flag.kind.in_(kinds), Flag.status == FlagStatus.OPEN,
+                                         Flag.dedupe_key.not_in(current_keys or {""}))).all()
+    for flag in stale:
+        flag.status = FlagStatus.DISMISSED
+        flag.resolved_at = datetime.now(UTC)
+        flag.resolution_note = SUPERSEDED_NOTE.format(run=run_id)
+        audit.record(s, org_id=org_id, actor_id=None, action="flag.superseded",
+                     entity_type="flag", entity_id=flag.id, before={"status": FlagStatus.OPEN},
+                     after={"status": FlagStatus.DISMISSED, "evidence_run_id": run_id})
+    return len(stale)
