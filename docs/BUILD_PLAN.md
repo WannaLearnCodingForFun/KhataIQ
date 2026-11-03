@@ -110,7 +110,7 @@ and `tests/test_parsers.py`.
   saved with version; classify stage uses it for rows rules missed. Report macro-F1 vs rules-only.
 - [x] **M8.3** `experiments/forecast/`: rolling-origin evaluation, LightGBM vs seasonal-naive; MLflow
   tracking; `docs/results/forecast.md`. App shows the forecast only if it beats the baseline.
-- [ ] **M8.4** `experiments/risk_benchmark/`: Home Credit benchmark (download instructions, not data, in
+- [x] **M8.4** `experiments/risk_benchmark/`: Home Credit benchmark (download instructions, not data, in
   repo), AUC + calibration plot + SHAP summary, `docs/results/risk_benchmark.md` with an explicit
   "what this does and doesn't show" section.
 
