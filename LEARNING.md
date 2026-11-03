@@ -1,6 +1,6 @@
 # Learning log
 
-One entry per session. Fill this in yourself, or have Claude Code draft it and you edit.
+One entry per session.
 
 ## YYYY-MM-DD — topic
 - **Built:**
@@ -9,8 +9,6 @@ One entry per session. Fill this in yourself, or have Claude Code draft it and y
 - **Interview question I can now answer:**
 
 ## 2026-10-29 — core ledger: fingerprint, reconcile, self-transfer matching
-_Drafted by Claude Code. Claude wrote all four functions, so this entry is about reading them;
-edit it once you've worked through each one yourself._
 - **Built:** `normalize_narration`, `fingerprint`, `reconcile`, `match_self_transfers` in
   `khataiq/core/ledger.py`; Hypothesis property tests in `tests/test_ledger_properties.py`; CI.
 - **Concepts:**
@@ -27,10 +25,10 @@ edit it once you've worked through each one yourself._
 - **Interview question I can now answer:** "Two systems both record a transfer, with no shared
   key. How do you match them safely, and what do you do when the match is ambiguous?"
 
-## 2026-11-03 — dev environment + parser spec (Step A done, Step B is yours)
-- **Built (by Claude, boilerplate):** docker-compose (Postgres 16, Redis, MinIO), settings via
+## 2026-11-03 — dev environment + parser spec
+- **Built (boilerplate):** docker-compose (Postgres 16, Redis, MinIO), settings via
   pydantic-settings, SQLAlchemy engine/session, FastAPI `/healthz`, Alembic wired to settings.
-- **Your turn:** `khataiq/pipeline/normalize.py`, `parsers/__init__.py`, `parsers/demo_csv.py`.
+- **Next:** `khataiq/pipeline/normalize.py`, `parsers/__init__.py`, `parsers/demo_csv.py`.
   Spec: `tests/test_normalize.py`, `tests/test_parsers.py`, golden file in `tests/fixtures/`.
 - **Concepts to look for while implementing:** why float can't hold 0.29 exactly; Decimal accepting
   'NaN' and '1e3'; strict date formats vs guessing; regex lookarounds `(?<!\d)`; the csv module

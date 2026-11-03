@@ -1,0 +1,22 @@
+{
+  "parser_version": "sbi-like-csv/1",
+  "opening_paise": 1000000,
+  "closing_paise": 2492350,
+  "rows": [
+    {"line_no": 5, "txn_date": "2026-11-01", "amount_paise": 200000, "direction": "credit",
+     "balance_after_paise": 1200000,
+     "narration": "BY TRANSFER-UPI/CR/412300000099/MEENA/meena@oksbi/PAYMENT",
+     "utr": "412300000099"},
+    {"line_no": 6, "txn_date": "2026-11-02", "amount_paise": 184050, "direction": "debit",
+     "balance_after_paise": 1015950,
+     "narration": "TO TRANSFER-UPI/DR/412300000100/ELECTRICITY BOARD/bescom@ybl/BILL",
+     "utr": "412300000100"},
+    {"line_no": 7, "txn_date": "2026-11-04", "amount_paise": 23600, "direction": "debit",
+     "balance_after_paise": 992350, "narration": "DEBIT-ATMCard AMC 5085XXXXXXXX1234",
+     "utr": null},
+    {"line_no": 8, "txn_date": "2026-11-06", "amount_paise": 1500000, "direction": "credit",
+     "balance_after_paise": 2492350,
+     "narration": "BY TRANSFER-NEFT*HDFC0000123*N310260098765*SHARMA TRADERS",
+     "utr": "310260098765"}
+  ]
+}

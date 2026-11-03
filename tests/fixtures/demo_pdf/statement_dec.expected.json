@@ -1,0 +1,439 @@
+{
+ "parser_version": "demo-pdf/1",
+ "opening_paise": 25000000,
+ "closing_paise": 32319200,
+ "rows": [
+  {
+   "line_no": 1001,
+   "txn_date": "2026-12-01",
+   "amount_paise": 1500000,
+   "direction": "credit",
+   "balance_after_paise": 26500000,
+   "narration": "UPI/412300100000/CUSTOMER 0/c0@okaxis",
+   "utr": "412300100000"
+  },
+  {
+   "line_no": 1002,
+   "txn_date": "2026-12-01",
+   "amount_paise": 905000,
+   "direction": "debit",
+   "balance_after_paise": 25595000,
+   "narration": "NEFT DR-SUPPLIER 1-INV 1001",
+   "utr": null
+  },
+  {
+   "line_no": 1003,
+   "txn_date": "2026-12-02",
+   "amount_paise": 250050,
+   "direction": "debit",
+   "balance_after_paise": 25344950,
+   "narration": "POS 02 STATIONERY MART",
+   "utr": null
+  },
+  {
+   "line_no": 1004,
+   "txn_date": "2026-12-02",
+   "amount_paise": 1530000,
+   "direction": "credit",
+   "balance_after_paise": 26874950,
+   "narration": "UPI/412300100003/CUSTOMER 3/c3@okaxis",
+   "utr": "412300100003"
+  },
+  {
+   "line_no": 1005,
+   "txn_date": "2026-12-03",
+   "amount_paise": 920000,
+   "direction": "debit",
+   "balance_after_paise": 25954950,
+   "narration": "NEFT DR-SUPPLIER 4-INV 1004",
+   "utr": null
+  },
+  {
+   "line_no": 1006,
+   "txn_date": "2026-12-04",
+   "amount_paise": 250050,
+   "direction": "debit",
+   "balance_after_paise": 25704900,
+   "narration": "POS 05 STATIONERY MART",
+   "utr": null
+  },
+  {
+   "line_no": 1007,
+   "txn_date": "2026-12-04",
+   "amount_paise": 1560000,
+   "direction": "credit",
+   "balance_after_paise": 27264900,
+   "narration": "UPI/412300100006/CUSTOMER 6/c6@okaxis",
+   "utr": "412300100006"
+  },
+  {
+   "line_no": 1008,
+   "txn_date": "2026-12-05",
+   "amount_paise": 935000,
+   "direction": "debit",
+   "balance_after_paise": 26329900,
+   "narration": "NEFT DR-SUPPLIER 7-INV 1007",
+   "utr": null
+  },
+  {
+   "line_no": 1009,
+   "txn_date": "2026-12-06",
+   "amount_paise": 250050,
+   "direction": "debit",
+   "balance_after_paise": 26079850,
+   "narration": "POS 08 STATIONERY MART",
+   "utr": null
+  },
+  {
+   "line_no": 1010,
+   "txn_date": "2026-12-06",
+   "amount_paise": 1590000,
+   "direction": "credit",
+   "balance_after_paise": 27669850,
+   "narration": "UPI/412300100009/CUSTOMER 9/c9@okaxis",
+   "utr": "412300100009"
+  },
+  {
+   "line_no": 1011,
+   "txn_date": "2026-12-07",
+   "amount_paise": 950000,
+   "direction": "debit",
+   "balance_after_paise": 26719850,
+   "narration": "NEFT DR-SUPPLIER 10-INV 1010",
+   "utr": null
+  },
+  {
+   "line_no": 1012,
+   "txn_date": "2026-12-07",
+   "amount_paise": 250050,
+   "direction": "debit",
+   "balance_after_paise": 26469800,
+   "narration": "POS 11 STATIONERY MART",
+   "utr": null
+  },
+  {
+   "line_no": 1013,
+   "txn_date": "2026-12-08",
+   "amount_paise": 1620000,
+   "direction": "credit",
+   "balance_after_paise": 28089800,
+   "narration": "UPI/412300100012/CUSTOMER 12/c12@okaxis",
+   "utr": "412300100012"
+  },
+  {
+   "line_no": 1014,
+   "txn_date": "2026-12-09",
+   "amount_paise": 965000,
+   "direction": "debit",
+   "balance_after_paise": 27124800,
+   "narration": "NEFT DR-SUPPLIER 13-INV 1013",
+   "utr": null
+  },
+  {
+   "line_no": 1015,
+   "txn_date": "2026-12-09",
+   "amount_paise": 250050,
+   "direction": "debit",
+   "balance_after_paise": 26874750,
+   "narration": "POS 14 STATIONERY MART",
+   "utr": null
+  },
+  {
+   "line_no": 1016,
+   "txn_date": "2026-12-10",
+   "amount_paise": 1650000,
+   "direction": "credit",
+   "balance_after_paise": 28524750,
+   "narration": "UPI/412300100015/CUSTOMER 15/c15@okaxis",
+   "utr": "412300100015"
+  },
+  {
+   "line_no": 1017,
+   "txn_date": "2026-12-11",
+   "amount_paise": 980000,
+   "direction": "debit",
+   "balance_after_paise": 27544750,
+   "narration": "NEFT DR-SUPPLIER 16-INV 1016",
+   "utr": null
+  },
+  {
+   "line_no": 1018,
+   "txn_date": "2026-12-11",
+   "amount_paise": 250050,
+   "direction": "debit",
+   "balance_after_paise": 27294700,
+   "narration": "POS 17 STATIONERY MART",
+   "utr": null
+  },
+  {
+   "line_no": 1019,
+   "txn_date": "2026-12-12",
+   "amount_paise": 1680000,
+   "direction": "credit",
+   "balance_after_paise": 28974700,
+   "narration": "UPI/412300100018/CUSTOMER 18/c18@okaxis",
+   "utr": "412300100018"
+  },
+  {
+   "line_no": 1020,
+   "txn_date": "2026-12-12",
+   "amount_paise": 995000,
+   "direction": "debit",
+   "balance_after_paise": 27979700,
+   "narration": "NEFT DR-SUPPLIER 19-INV 1019",
+   "utr": null
+  },
+  {
+   "line_no": 1021,
+   "txn_date": "2026-12-13",
+   "amount_paise": 250050,
+   "direction": "debit",
+   "balance_after_paise": 27729650,
+   "narration": "POS 20 STATIONERY MART",
+   "utr": null
+  },
+  {
+   "line_no": 1022,
+   "txn_date": "2026-12-14",
+   "amount_paise": 1710000,
+   "direction": "credit",
+   "balance_after_paise": 29439650,
+   "narration": "UPI/412300100021/CUSTOMER 21/c21@okaxis",
+   "utr": "412300100021"
+  },
+  {
+   "line_no": 1023,
+   "txn_date": "2026-12-14",
+   "amount_paise": 1010000,
+   "direction": "debit",
+   "balance_after_paise": 28429650,
+   "narration": "NEFT DR-SUPPLIER 22-INV 1022",
+   "utr": null
+  },
+  {
+   "line_no": 1024,
+   "txn_date": "2026-12-15",
+   "amount_paise": 250050,
+   "direction": "debit",
+   "balance_after_paise": 28179600,
+   "narration": "POS 23 STATIONERY MART",
+   "utr": null
+  },
+  {
+   "line_no": 1025,
+   "txn_date": "2026-12-16",
+   "amount_paise": 1740000,
+   "direction": "credit",
+   "balance_after_paise": 29919600,
+   "narration": "UPI/412300100024/CUSTOMER 24/c24@okaxis",
+   "utr": "412300100024"
+  },
+  {
+   "line_no": 1026,
+   "txn_date": "2026-12-16",
+   "amount_paise": 1025000,
+   "direction": "debit",
+   "balance_after_paise": 28894600,
+   "narration": "NEFT DR-SUPPLIER 25-INV 1025",
+   "utr": null
+  },
+  {
+   "line_no": 1027,
+   "txn_date": "2026-12-17",
+   "amount_paise": 250050,
+   "direction": "debit",
+   "balance_after_paise": 28644550,
+   "narration": "POS 26 STATIONERY MART",
+   "utr": null
+  },
+  {
+   "line_no": 1028,
+   "txn_date": "2026-12-17",
+   "amount_paise": 1770000,
+   "direction": "credit",
+   "balance_after_paise": 30414550,
+   "narration": "UPI/412300100027/CUSTOMER 27/c27@okaxis",
+   "utr": "412300100027"
+  },
+  {
+   "line_no": 1029,
+   "txn_date": "2026-12-18",
+   "amount_paise": 1040000,
+   "direction": "debit",
+   "balance_after_paise": 29374550,
+   "narration": "NEFT DR-SUPPLIER 28-INV 1028",
+   "utr": null
+  },
+  {
+   "line_no": 1030,
+   "txn_date": "2026-12-19",
+   "amount_paise": 250050,
+   "direction": "debit",
+   "balance_after_paise": 29124500,
+   "narration": "POS 29 STATIONERY MART",
+   "utr": null
+  },
+  {
+   "line_no": 2001,
+   "txn_date": "2026-12-19",
+   "amount_paise": 1800000,
+   "direction": "credit",
+   "balance_after_paise": 30924500,
+   "narration": "UPI/412300100030/CUSTOMER 30/c30@okaxis",
+   "utr": "412300100030"
+  },
+  {
+   "line_no": 2002,
+   "txn_date": "2026-12-20",
+   "amount_paise": 1055000,
+   "direction": "debit",
+   "balance_after_paise": 29869500,
+   "narration": "NEFT DR-SUPPLIER 31-INV 1031",
+   "utr": null
+  },
+  {
+   "line_no": 2003,
+   "txn_date": "2026-12-21",
+   "amount_paise": 250050,
+   "direction": "debit",
+   "balance_after_paise": 29619450,
+   "narration": "POS 32 STATIONERY MART",
+   "utr": null
+  },
+  {
+   "line_no": 2004,
+   "txn_date": "2026-12-21",
+   "amount_paise": 1830000,
+   "direction": "credit",
+   "balance_after_paise": 31449450,
+   "narration": "UPI/412300100033/CUSTOMER 33/c33@okaxis",
+   "utr": "412300100033"
+  },
+  {
+   "line_no": 2005,
+   "txn_date": "2026-12-22",
+   "amount_paise": 1070000,
+   "direction": "debit",
+   "balance_after_paise": 30379450,
+   "narration": "NEFT DR-SUPPLIER 34-INV 1034",
+   "utr": null
+  },
+  {
+   "line_no": 2006,
+   "txn_date": "2026-12-22",
+   "amount_paise": 250050,
+   "direction": "debit",
+   "balance_after_paise": 30129400,
+   "narration": "POS 35 STATIONERY MART",
+   "utr": null
+  },
+  {
+   "line_no": 2007,
+   "txn_date": "2026-12-23",
+   "amount_paise": 1860000,
+   "direction": "credit",
+   "balance_after_paise": 31989400,
+   "narration": "UPI/412300100036/CUSTOMER 36/c36@okaxis",
+   "utr": "412300100036"
+  },
+  {
+   "line_no": 2008,
+   "txn_date": "2026-12-24",
+   "amount_paise": 1085000,
+   "direction": "debit",
+   "balance_after_paise": 30904400,
+   "narration": "NEFT DR-SUPPLIER 37-INV 1037",
+   "utr": null
+  },
+  {
+   "line_no": 2009,
+   "txn_date": "2026-12-24",
+   "amount_paise": 250050,
+   "direction": "debit",
+   "balance_after_paise": 30654350,
+   "narration": "POS 38 STATIONERY MART",
+   "utr": null
+  },
+  {
+   "line_no": 2010,
+   "txn_date": "2026-12-25",
+   "amount_paise": 1890000,
+   "direction": "credit",
+   "balance_after_paise": 32544350,
+   "narration": "UPI/412300100039/CUSTOMER 39/c39@okaxis",
+   "utr": "412300100039"
+  },
+  {
+   "line_no": 2011,
+   "txn_date": "2026-12-26",
+   "amount_paise": 1100000,
+   "direction": "debit",
+   "balance_after_paise": 31444350,
+   "narration": "NEFT DR-SUPPLIER 40-INV 1040",
+   "utr": null
+  },
+  {
+   "line_no": 2012,
+   "txn_date": "2026-12-26",
+   "amount_paise": 250050,
+   "direction": "debit",
+   "balance_after_paise": 31194300,
+   "narration": "POS 41 STATIONERY MART",
+   "utr": null
+  },
+  {
+   "line_no": 2013,
+   "txn_date": "2026-12-27",
+   "amount_paise": 1920000,
+   "direction": "credit",
+   "balance_after_paise": 33114300,
+   "narration": "UPI/412300100042/CUSTOMER 42/c42@okaxis",
+   "utr": "412300100042"
+  },
+  {
+   "line_no": 2014,
+   "txn_date": "2026-12-27",
+   "amount_paise": 1115000,
+   "direction": "debit",
+   "balance_after_paise": 31999300,
+   "narration": "NEFT DR-SUPPLIER 43-INV 1043",
+   "utr": null
+  },
+  {
+   "line_no": 2015,
+   "txn_date": "2026-12-28",
+   "amount_paise": 250050,
+   "direction": "debit",
+   "balance_after_paise": 31749250,
+   "narration": "POS 44 STATIONERY MART",
+   "utr": null
+  },
+  {
+   "line_no": 2016,
+   "txn_date": "2026-12-29",
+   "amount_paise": 1950000,
+   "direction": "credit",
+   "balance_after_paise": 33699250,
+   "narration": "UPI/412300100045/CUSTOMER 45/c45@okaxis",
+   "utr": "412300100045"
+  },
+  {
+   "line_no": 2017,
+   "txn_date": "2026-12-29",
+   "amount_paise": 1130000,
+   "direction": "debit",
+   "balance_after_paise": 32569250,
+   "narration": "NEFT DR-SUPPLIER 46-INV 1046",
+   "utr": null
+  },
+  {
+   "line_no": 2018,
+   "txn_date": "2026-12-30",
+   "amount_paise": 250050,
+   "direction": "debit",
+   "balance_after_paise": 32319200,
+   "narration": "POS 47 STATIONERY MART",
+   "utr": null
+  }
+ ]
+}

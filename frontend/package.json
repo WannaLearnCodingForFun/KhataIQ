@@ -1,0 +1,38 @@
+{
+  "name": "khataiq-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "cp -r .next/static .next/standalone/.next/ && PORT=3000 node .next/standalone/server.js",
+    "typecheck": "tsc --noEmit",
+    "gen:api": "openapi-typescript openapi.json -o src/lib/api-schema.d.ts",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "5.90.2",
+    "@tanstack/react-virtual": "3.13.12",
+    "cytoscape": "3.33.1",
+    "next": "15.5.28",
+    "openapi-fetch": "0.14.0",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "recharts": "3.2.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/postcss": "4.1.13",
+    "@types/cytoscape": "3.21.9",
+    "@types/node": "22.18.6",
+    "@types/react": "19.1.13",
+    "@types/react-dom": "19.1.9",
+    "openapi-typescript": "7.9.1",
+    "tailwindcss": "4.1.13",
+    "typescript": "5.9.2"
+  },
+  "overrides": {
+    "postcss": "8.5.32",
+    "sharp": "0.35.5"
+  }
+}

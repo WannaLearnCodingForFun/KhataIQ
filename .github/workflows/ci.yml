@@ -6,10 +6,31 @@ on:
 
 jobs:
   test:
+    name: Backend (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: khataiq
+          POSTGRES_PASSWORD: khataiq
+          POSTGRES_DB: khataiq_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U khataiq"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      KHATAIQ_TEST_DATABASE_URL: postgresql+psycopg://khataiq:khataiq@localhost:5432/khataiq_test
+      KHATAIQ_TEST_REDIS_URL: redis://localhost:6379/15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -18,5 +39,116 @@ jobs:
           cache: pip
       - run: pip install -e '.[dev]'
       - run: ruff check .
-      - run: mypy khataiq
+      - run: mypy khataiq synthetic
+      - name: Migrations match the models
+        run: |
+          psql postgresql://khataiq:khataiq@localhost:5432/postgres -c "CREATE DATABASE khataiq_check"
+          KHATAIQ_MIGRATION_DATABASE_URL=postgresql+psycopg://khataiq:khataiq@localhost:5432/khataiq_check alembic upgrade head
+          KHATAIQ_MIGRATION_DATABASE_URL=postgresql+psycopg://khataiq:khataiq@localhost:5432/khataiq_check alembic check
       - run: pytest -q
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: pip install -e .
+      - run: npm ci
+        working-directory: frontend
+      - name: Generated API types are up to date
+        run: |
+          python scripts/export_openapi.py > frontend/openapi.json
+          (cd frontend && npm run gen:api)
+          git diff --exit-code -- frontend/openapi.json frontend/src/lib/api-schema.d.ts
+      - run: npm run typecheck
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
+
+  e2e:
+    name: End-to-end (Playwright)
+    runs-on: ubuntu-latest
+    needs: [test, frontend]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: khataiq
+          POSTGRES_PASSWORD: khataiq
+          POSTGRES_DB: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U khataiq"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: pip install -e '.[dev]'
+      - run: npm ci && npx playwright install --with-deps chromium
+        working-directory: frontend
+      - run: scripts/e2e.sh
+        env:
+          PG_ADMIN_URL: postgresql://khataiq:khataiq@localhost:5432/postgres
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: frontend/test-results
+
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: pip install . pip-audit
+      - run: pip-audit --skip-editable
+      - run: npm ci && npm audit --omit=dev --audit-level=high
+        working-directory: frontend
+
+  images:
+    name: Docker images
+    runs-on: ubuntu-latest
+    needs: [test, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t khataiq-app:ci .
+      - run: docker build -t khataiq-web:ci frontend
+      - name: The app image starts and imports
+        run: docker run --rm khataiq-app:ci python -c "import khataiq.api.main, khataiq.pipeline.celery_app; print('ok')"
+      - name: The one-command demo starts, seeds and serves through the web proxy
+        run: |
+          scripts/demo.sh
+          for _ in $(seq 1 60); do curl -sf http://localhost:3000/login >/dev/null && break; sleep 2; done
+          token=$(curl -sf -X POST http://localhost:3000/v1/auth/login -H 'content-type: application/json' \
+            -d '{"email":"officer1@demo.khataiq.dev","password":"khataiq-dev-password"}' \
+            | python3 -c "import json, sys; print(json.load(sys.stdin)['access_token'])")
+          curl -sf -H "authorization: Bearer $token" http://localhost:3000/v1/businesses/1/metrics \
+            | python3 -c "import json, sys; m = json.load(sys.stdin)['months']; assert len(m) >= 6, m; print(len(m), 'months')"
+      - if: failure()
+        run: scripts/demo.sh logs --tail 80
