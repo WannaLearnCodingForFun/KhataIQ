@@ -1,0 +1,23 @@
+{
+  "parser_version": "demo-csv/1",
+  "opening_paise": 1000000,
+  "closing_paise": 1558750,
+  "rows": [
+    {"line_no": 3, "txn_date": "2026-10-01", "amount_paise": 45000, "direction": "debit",
+     "balance_after_paise": 955000, "narration": "UPI/412345678901/ZOMATO/zomato@hdfcbank",
+     "utr": "412345678901"},
+    {"line_no": 4, "txn_date": "2026-10-02", "amount_paise": 2500000, "direction": "credit",
+     "balance_after_paise": 3455000, "narration": "NEFT CR-SBIN0001234-SHARMA TRADERS",
+     "utr": null},
+    {"line_no": 5, "txn_date": "2026-10-02", "amount_paise": 500000, "direction": "debit",
+     "balance_after_paise": 2955000,
+     "narration": "UPI/412398765432/SELF TRANSFER/atharva@okaxis", "utr": "412398765432"},
+    {"line_no": 6, "txn_date": "2026-10-05", "amount_paise": 200000, "direction": "debit",
+     "balance_after_paise": 2755000, "narration": "ATM WDL, MG ROAD", "utr": null},
+    {"line_no": 7, "txn_date": "2026-10-07", "amount_paise": 1200000, "direction": "debit",
+     "balance_after_paise": 1555000, "narration": "IMPS/P2A/612345678901/RENT",
+     "utr": "612345678901"},
+    {"line_no": 9, "txn_date": "2026-10-10", "amount_paise": 3750, "direction": "credit",
+     "balance_after_paise": 1558750, "narration": "INT CR", "utr": null}
+  ]
+}
