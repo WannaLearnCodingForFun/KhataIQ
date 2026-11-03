@@ -5,8 +5,13 @@ task (with a countdown for retries); InlineDispatcher keeps a queue in memory so
 synthetic evaluation can run the whole pipeline in-process.
 
 Guarantees:
-  * Each attempt is a pipeline_runs row, UNIQUE(upload_id, stage, attempt_no). A duplicate
-    delivery of the same attempt can't insert its row, so it does nothing.
+  * Each attempt is a pipeline_runs row, UNIQUE(upload_id, stage, attempt_no). If that row
+    already exists and is still 'running', the message is a redelivery after a worker died
+    mid-stage (late acks) or a duplicate publish racing a live worker: either way it takes the
+    attempt over. Work happens under a row lock on the upload, and the "already succeeded?"
+    check is repeated under that lock, so two workers on one attempt run one after the other
+    and the second finds nothing to do. A finished (failed/dead) attempt is never re-run by a
+    duplicate message; only the retry or admin path creates a new attempt.
   * A stage's database effects and its 'succeeded' mark commit in one transaction.
   * A stage that already succeeded is skipped, but its successor is dispatched again. With
     late acks, a worker that dies after committing but before dispatching gets its message
@@ -145,16 +150,22 @@ def _run(job: StageJob, dispatcher: Dispatcher) -> Outcome:
             skipped_status = upload.status
             run_id = None
         else:
-            run = PipelineRun(org_id=job.org_id, upload_id=job.upload_id, stage=job.stage,
-                              attempt_no=job.attempt, status=PipelineStatus.RUNNING,
-                              started_at=_now())
-            try:
-                with s.begin_nested():
-                    s.add(run)
-                    s.flush()
-            except IntegrityError:
-                return Outcome.SKIPPED  # this exact attempt is already being handled
-            run_id = run.id
+            existing = _attempt(s, job)
+            if existing is None:
+                run = PipelineRun(org_id=job.org_id, upload_id=job.upload_id, stage=job.stage,
+                                  attempt_no=job.attempt, status=PipelineStatus.RUNNING,
+                                  started_at=_now())
+                try:
+                    with s.begin_nested():
+                        s.add(run)
+                        s.flush()
+                    existing = run
+                except IntegrityError:
+                    existing = _attempt(s, job)  # inserted by a concurrent delivery
+            assert existing is not None
+            if existing.status != PipelineStatus.RUNNING:
+                return Outcome.SKIPPED  # this attempt already finished; never re-run it
+            run_id = existing.id
             if job.stage == PIPELINE[0]:
                 set_status(s, upload, UploadStatus.PARSING)
 
@@ -168,6 +179,8 @@ def _run(job: StageJob, dispatcher: Dispatcher) -> Outcome:
         with tenant_session(job.org_id) as s:
             upload = s.get(Upload, job.upload_id, with_for_update=True)
             assert upload is not None
+            if _already_succeeded(s, job):
+                return Outcome.SKIPPED  # a concurrent worker finished it while we waited
             result = stage_fn(s, upload)
             _finish(s, run_id, PipelineStatus.SUCCEEDED, None)
             if result == StageResult.CONTINUE and next_stage(job.stage) is None:
@@ -197,6 +210,12 @@ def _already_succeeded(s: Session, job: StageJob) -> bool:
     return s.scalar(select(PipelineRun.id).where(
         PipelineRun.upload_id == job.upload_id, PipelineRun.stage == job.stage,
         PipelineRun.status == PipelineStatus.SUCCEEDED).limit(1)) is not None
+
+
+def _attempt(s: Session, job: StageJob) -> PipelineRun | None:
+    return s.scalar(select(PipelineRun).where(
+        PipelineRun.upload_id == job.upload_id, PipelineRun.stage == job.stage,
+        PipelineRun.attempt_no == job.attempt))
 
 
 def _dispatch_next(job: StageJob, dispatcher: Dispatcher) -> None:

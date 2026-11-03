@@ -237,11 +237,27 @@ def test_fifth_failure_is_dead_and_fails_the_upload(owner_session: Session, monk
         AuditLog.action == "pipeline.dead")) is not None
 
 
-def test_duplicate_delivery_of_the_same_attempt_is_skipped(owner_session: Session):
+def test_redelivery_after_a_worker_crash_takes_the_attempt_over(owner_session: Session):
+    """A worker claimed attempt 1 ('running') and died; the redelivered message must finish
+    the stage instead of skipping it forever."""
     shop = make_shop(owner_session)
     upload_id = upload(shop, statement(OCT, 3))
-    job = StageJob(upload_id, shop.owner.org_id, "parse")
     owner_session.add(PipelineRun(org_id=shop.owner.org_id, upload_id=upload_id, stage="parse",
                                   attempt_no=1, status=PipelineStatus.RUNNING))
     owner_session.commit()
+    dispatcher = InlineDispatcher()
+    dispatcher.dispatch(StageJob(upload_id, shop.owner.org_id, "parse"))
+    assert {o for _, o in dispatcher.drain()} == {Outcome.SUCCEEDED}
+    assert owner_session.get(Upload, upload_id).status == UploadStatus.PROCESSED
+    assert owner_session.scalar(select(func.count()).select_from(PipelineRun).where(
+        PipelineRun.stage == "parse")) == 1
+
+
+def test_duplicate_of_a_finished_attempt_is_skipped(owner_session: Session):
+    shop = make_shop(owner_session)
+    upload_id = upload(shop, statement(OCT, 3))
+    owner_session.add(PipelineRun(org_id=shop.owner.org_id, upload_id=upload_id, stage="parse",
+                                  attempt_no=1, status=PipelineStatus.FAILED, error="x"))
+    owner_session.commit()
+    job = StageJob(upload_id, shop.owner.org_id, "parse")
     assert runner.run_stage(job, InlineDispatcher()) == Outcome.SKIPPED
