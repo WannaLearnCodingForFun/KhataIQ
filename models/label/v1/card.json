@@ -1,0 +1,16 @@
+{
+ "version": "label-v1",
+ "created": "2026-11-03",
+ "rules_version": "rules-v1",
+ "features": "TF-IDF char_wb 2-5 grams over 'DR|CR AMT<digits> <narration>'",
+ "classifier": "LogisticRegression(class_weight='balanced')",
+ "confidence_floor": 0.6,
+ "training_data": "synthetic.generator seeds 1-200 (200 businesses, 114822 rows)",
+ "evaluation_data": "held-out businesses, seeds 201-250 (50 businesses, 29036 rows)",
+ "macro_f1": {
+  "rules_only": 0.534,
+  "model_only": 0.831,
+  "rules_plus_model": 0.831
+ },
+ "rule_coverage": 0.122
+}

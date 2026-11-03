@@ -208,7 +208,7 @@ def _score_business(s: Session, business_id: int, biz: GeneratedBusiness,
     dup.unresolved += len(predicted)
 
     loan = report.score("LOAN_DISBURSAL")
-    loan.note = "needs the loan_in label (M8 classifier)"
+    loan.note = "inferred by design (one leg + label); scored as detection"
     expected_loans = set(truth["loans"])
     predicted_loans = {refs[link.txn_a] for link in links
                        if link.kind == EvidenceKind.LOAN_DISBURSAL}
@@ -235,6 +235,41 @@ def _score_business(s: Session, business_id: int, biz: GeneratedBusiness,
     cyc.predicted += len(flagged)
     cyc.correct += sum(1 for f in flagged if any(len(p & f) >= 2 for p in planted))
     cyc.found += sum(1 for leg in legs if any(leg <= f for f in flagged))
+
+
+_label_truth: list[str] = []
+_label_pred: list[str] = []
+
+
+def _collect_labels(s: Session, biz: GeneratedBusiness, refs: dict[int, str], report: Report,
+                    business_id: int) -> None:
+    """Current label of every stored row vs its true label, for macro-F1 at the end."""
+    from khataiq.services.evidence import current_labels
+
+    found = dict(s.execute(select(current_labels.c.txn_id, current_labels.c.label)
+                           .where(current_labels.c.txn_id.in_(list(refs)))).all())
+    for txn_id, ref in refs.items():
+        if ref in biz.ground_truth["labels"]:
+            _label_truth.append(biz.ground_truth["labels"][ref])
+            label = found.get(txn_id)
+            _label_pred.append(label.value if label is not None else "unlabelled")
+
+
+def _label_f1(report: Report) -> None:
+    from sklearn.metrics import f1_score
+
+    if not _label_truth:
+        return
+    labels = sorted(set(_label_truth))
+    score = f1_score(_label_truth, _label_pred, labels=labels, average="macro", zero_division=0)
+    report.extra["Label macro-F1 (rules + model, these businesses were never in training)"] = (
+        f"{score:.3f} over {len(_label_truth):,} rows")
+    _label_truth.clear()
+    _label_pred.clear()
+
+
+HOOKS.append(_collect_labels)
+FINALIZERS.append(_label_f1)
 
 
 def _pct(value: float | None) -> str:

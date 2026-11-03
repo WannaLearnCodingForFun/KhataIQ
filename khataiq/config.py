@@ -45,6 +45,8 @@ class Settings(BaseSettings):
 
     max_upload_bytes: int = 10 * 1024 * 1024
 
+    label_model_dir: str | None = None  # default: models/label/v1 in the repository
+
     llm_model: str = "claude-sonnet-5-5"
     llm_api_key: SecretStr | None = None
 
