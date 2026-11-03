@@ -131,7 +131,7 @@ and `tests/test_parsers.py`.
 ## M11 — Production readiness
 - [x] **M11.1** structlog JSON logs with masking processor; OpenTelemetry; Prometheus `/metrics`;
   `/readyz`; Grafana dashboard JSON in `ops/grafana/`.
-- [ ] **M11.2** Locust load test in `ops/load/`; results in `docs/results/load.md` (scenario,
+- [x] **M11.2** Locust load test in `ops/load/`; results in `docs/results/load.md` (scenario,
   hardware, target p95, measured p95 — report honestly, even if it misses).
 - [ ] **M11.3** Dockerfiles, `docker-compose.prod.yml`, CI: integration tests with service containers,
   `pip-audit`, image build; deploy notes in `docs/deploy.md`.
