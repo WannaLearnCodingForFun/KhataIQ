@@ -8,7 +8,15 @@ from fastapi.middleware.cors import CORSMiddleware
 import khataiq.pipeline.stages  # noqa: F401  (registers pipeline stages for admin retries)
 from khataiq.api import problems
 from khataiq.api.middleware import BodySizeLimitMiddleware, RequestIdMiddleware
-from khataiq.api.routes import admin, auth, businesses, evidence, ledger, uploads
+from khataiq.api.routes import (
+    admin,
+    assessments,
+    auth,
+    businesses,
+    evidence,
+    ledger,
+    uploads,
+)
 from khataiq.config import get_settings
 
 
@@ -39,6 +47,7 @@ def create_app() -> FastAPI:
     app.include_router(uploads.router)
     app.include_router(ledger.router)
     app.include_router(evidence.router)
+    app.include_router(assessments.router)
     app.include_router(admin.router)
     return app
 

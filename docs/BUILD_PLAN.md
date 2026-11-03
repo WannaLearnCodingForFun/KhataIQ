@@ -93,7 +93,7 @@ and `tests/test_parsers.py`.
   - Property test: net business inflow ≤ gross inflow; uncertain ≥ 0; sums match the ledger.
 - [x] **M6.2** Metrics stage + `GET /v1/businesses/{id}/metrics`, `GET /v1/businesses/{id}/transactions`
   (filters: date range, label, evidence level, account; cursor pagination), `GET /v1/businesses/{id}/graph`.
-- [ ] **M6.3** Assessments state machine: draft → in_review → approved|rejected; in_review → draft;
+- [x] **M6.3** Assessments state machine: draft → in_review → approved|rejected; in_review → draft;
   nothing leaves approved/rejected. DB trigger also blocks illegal transitions.
   - Test: every illegal transition returns 409 and writes no audit row.
 
