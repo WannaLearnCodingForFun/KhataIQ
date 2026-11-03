@@ -74,14 +74,14 @@ and `tests/test_parsers.py`.
   - Integration test (CI only): a real worker with Redis processes a fixture end to end.
 
 ## M5 — Evidence engine (`docs/specs/evidence-engine.md`)
-- [ ] **M5.1** Self-transfer service: run `match_self_transfers` across all of a business's accounts,
+- [x] **M5.1** Self-transfer service: run `match_self_transfers` across all of a business's accounts,
   persist `evidence_links` under a new `run_id`; add the **inferred** level (own-account mask or owner
   UPI ID in narration, one leg only).
-- [ ] **M5.2** Reversals and duplicates rules, each with `rule_id` + `rule_version`.
-- [ ] **M5.3** Cycle detection: counterparty graph per 30-day window, Tarjan SCC (iterative, no recursion
+- [x] **M5.2** Reversals and duplicates rules, each with `rule_id` + `rule_version`.
+- [x] **M5.3** Cycle detection: counterparty graph per 30-day window, Tarjan SCC (iterative, no recursion
   limit issues), Johnson-style simple-cycle enumeration bounded to 4 hops and 50 cycles per SCC.
   - Unit tests: known cycles found; DAG yields none; 10,000-edge random graph finishes < 2 s.
-- [ ] **M5.4** Flags: create from cycles and unresolved transfers with `flag_evidence`; `GET/PATCH
+- [x] **M5.4** Flags: create from cycles and unresolved transfers with `flag_evidence`; `GET/PATCH
   /v1/flags/{id}`; confirm/dismiss requires a note; audit entries.
   - Property test: every flag has ≥ 1 evidence row; re-running evidence on unchanged data creates no
     new open flags (dedupe by rule + sorted txn ids).

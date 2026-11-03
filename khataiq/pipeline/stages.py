@@ -140,3 +140,6 @@ def stage_reconcile(s: Session, upload: Upload) -> StageResult:
 register_stage("parse", stage_parse, UploadStatus.RECEIVED)
 register_stage("persist", stage_persist, UploadStatus.PARSED)
 register_stage("reconcile", stage_reconcile, UploadStatus.PARSED)
+
+# Later stages live in their own modules; importing them here registers them in order.
+import khataiq.pipeline.stage_evidence  # noqa: E402, F401

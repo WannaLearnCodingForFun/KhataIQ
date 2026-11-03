@@ -25,6 +25,7 @@ class Shop:
     owner: Principal
     business_id: int
     account_id: int
+    account_ids: tuple[int, ...] = ()
 
 
 def make_shop(s: Session, masks: tuple[str, ...] = ("1234",)) -> Shop:
@@ -33,7 +34,8 @@ def make_shop(s: Session, masks: tuple[str, ...] = ("1234",)) -> Shop:
     b = f.business(s, o.id, u.id)
     accounts = [f.account(s, o.id, b.id, mask=m) for m in masks]
     s.commit()
-    return Shop(Principal(u.id, o.id, UserRole.OWNER), b.id, accounts[0].id)
+    return Shop(Principal(u.id, o.id, UserRole.OWNER), b.id, accounts[0].id,
+                tuple(a.id for a in accounts))
 
 
 def upload(shop: Shop, data: bytes, account_id: int | None = None) -> int:

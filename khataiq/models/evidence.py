@@ -5,12 +5,41 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import ForeignKey, Index, Integer, PrimaryKeyConstraint, UniqueConstraint, text
+from sqlalchemy import (
+    BigInteger,
+    ForeignKey,
+    Index,
+    Integer,
+    PrimaryKeyConstraint,
+    Sequence,
+    UniqueConstraint,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from khataiq.db import Base
 from khataiq.models.base import created_at_column, id_column, org_id_column
 from khataiq.models.enums import EvidenceKind, EvidenceLevel, FlagKind, FlagStatus, pg_enum
+
+EVIDENCE_RUN_SEQ = Sequence("evidence_run_id_seq", metadata=Base.metadata)
+
+
+class EvidenceRun(Base):
+    """One run of the evidence engine for one business. The business's latest run is current,
+    even when it found nothing (which is why runs need their own row)."""
+
+    __tablename__ = "evidence_runs"
+
+    id: Mapped[int] = mapped_column(BigInteger, EVIDENCE_RUN_SEQ,
+                                    server_default=EVIDENCE_RUN_SEQ.next_value(),
+                                    primary_key=True)
+    org_id: Mapped[int] = org_id_column()
+    business_id: Mapped[int] = mapped_column(ForeignKey("businesses.id"))
+    link_count: Mapped[int] = mapped_column(Integer)
+    txn_count: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = created_at_column()
+
+    __table_args__ = (Index("ix_evidence_runs_business", "business_id", "id"),)
 
 
 class EvidenceLink(Base):
@@ -19,7 +48,7 @@ class EvidenceLink(Base):
     id: Mapped[int] = id_column()
     org_id: Mapped[int] = org_id_column()
     business_id: Mapped[int] = mapped_column(ForeignKey("businesses.id"))
-    run_id: Mapped[int]
+    run_id: Mapped[int] = mapped_column(ForeignKey("evidence_runs.id"))
     kind: Mapped[EvidenceKind] = mapped_column(pg_enum(EvidenceKind, "evidence_kind"))
     txn_a: Mapped[int] = mapped_column(ForeignKey("transactions.id"), index=True)
     txn_b: Mapped[int | None] = mapped_column(ForeignKey("transactions.id"), index=True)

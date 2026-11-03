@@ -55,6 +55,7 @@ Money columns are `BIGINT` paise. All tables have `created_at timestamptz defaul
 | transactions | id, org_id, account_id, upload_id, txn_date, amount_paise, direction, balance_after_paise, narration, narration_norm, channel, utr, counterparty_key, fingerprint, source_line | `UNIQUE(account_id, fingerprint)`; `CHECK(amount_paise > 0)`; indexes below |
 | upload_rows | upload_id, line_no, txn_id, org_id | `PK(upload_id, line_no)`; every statement line → its transaction, including rows first stored from an overlapping statement. The ledger = transactions in ≥ 1 reconciled upload |
 | txn_labels | id, org_id, txn_id, label, method, model_version, confidence, created_by, created_at | Append-only; method rule/model/human; view `current_txn_labels` picks latest, human > rule > model |
+| evidence_runs | id, org_id, business_id, link_count, txn_count | One row per run (ids from `evidence_run_id_seq`); the latest per business is current, even if it found nothing |
 | evidence_links | id, org_id, business_id, kind, txn_a, txn_b, level, rule_id, rule_version, details, run_id | kind self_transfer/reversal/duplicate; level verified/inferred/unresolved |
 | flags | id, org_id, business_id, kind, status, summary, total_paise, rule_id, rule_version, resolved_by, resolved_at, resolution_note | kind cycle/unresolved_transfer/needs_review_upload; status open/confirmed/dismissed |
 | flag_evidence | flag_id, txn_id | Many-to-many; a flag must have ≥ 1 row (enforced in the service + a deferred constraint trigger) |
