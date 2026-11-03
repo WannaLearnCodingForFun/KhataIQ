@@ -25,6 +25,7 @@ Guarantees:
 from __future__ import annotations
 
 import logging
+import time
 from collections import deque
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, replace
@@ -40,6 +41,7 @@ from khataiq import audit
 from khataiq.db import tenant_session
 from khataiq.models import PipelineRun, Upload
 from khataiq.models.enums import PipelineStatus, UploadStatus
+from khataiq.observability import STAGE_DURATION, STAGE_FAILURES, stage_span
 from khataiq.request_context import request_id_var
 
 log = logging.getLogger(__name__)
@@ -136,9 +138,16 @@ def set_status(s: Session, upload: Upload, status: UploadStatus, error: str | No
 
 def run_stage(job: StageJob, dispatcher: Dispatcher) -> Outcome:
     token = request_id_var.set(job.request_id)
+    started = time.perf_counter()
+    outcome = Outcome.FAILED
     try:
-        return _run(job, dispatcher)
+        with stage_span(job.stage, job.upload_id, job.attempt):
+            outcome = _run(job, dispatcher)
+        return outcome
     finally:
+        STAGE_DURATION.labels(job.stage, outcome.value).observe(time.perf_counter() - started)
+        if outcome in (Outcome.RETRYING, Outcome.FAILED, Outcome.DEAD):
+            STAGE_FAILURES.labels(job.stage, outcome.value).inc()
         request_id_var.reset(token)
 
 

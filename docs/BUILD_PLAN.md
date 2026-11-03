@@ -129,7 +129,7 @@ and `tests/test_parsers.py`.
 - [x] **M10.4** Playwright smoke test: login → upload fixture → see metrics → resolve a flag.
 
 ## M11 — Production readiness
-- [ ] **M11.1** structlog JSON logs with masking processor; OpenTelemetry; Prometheus `/metrics`;
+- [x] **M11.1** structlog JSON logs with masking processor; OpenTelemetry; Prometheus `/metrics`;
   `/readyz`; Grafana dashboard JSON in `ops/grafana/`.
 - [ ] **M11.2** Locust load test in `ops/load/`; results in `docs/results/load.md` (scenario,
   hardware, target p95, measured p95 — report honestly, even if it misses).

@@ -24,6 +24,12 @@ dependencies = [
     "scikit-learn>=1.5",
     "joblib>=1.4",
     "anthropic>=2.4",
+    "structlog>=24.1",
+    "prometheus-client>=0.20",
+    "opentelemetry-api>=1.25",
+    "opentelemetry-sdk>=1.25",
+    "opentelemetry-instrumentation-fastapi>=0.46b0",
+    "opentelemetry-exporter-otlp-proto-http>=1.25",
 ]
 
 [project.optional-dependencies]
@@ -65,7 +71,8 @@ strict = true
 
 [[tool.mypy.overrides]]
 module = ["boto3.*", "botocore.*", "moto.*", "celery.*", "kombu.*", "sklearn.*", "joblib.*",
-          "lightgbm.*", "mlflow.*", "shap.*", "matplotlib.*", "pandas.*"]
+          "lightgbm.*", "mlflow.*", "shap.*", "matplotlib.*", "pandas.*",
+          "opentelemetry.instrumentation.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

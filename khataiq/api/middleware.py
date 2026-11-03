@@ -1,13 +1,15 @@
-"""ASGI middleware: request ids and a request-body size cap."""
+"""ASGI middleware: request ids, request metrics and a request-body size cap."""
 
 from __future__ import annotations
 
 import json
 import re
+import time
 import uuid
 
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from khataiq.observability import HTTP_LATENCY
 from khataiq.request_context import request_id_var
 
 _VALID_ID = re.compile(r"[A-Za-z0-9_-]{1,64}")
@@ -96,3 +98,33 @@ class BodySizeLimitMiddleware:
 
 class _BodyTooLarge(Exception):
     pass
+
+
+class MetricsMiddleware:
+    """Request latency by method, route *template* (/v1/uploads/{upload_id}, never the raw path,
+    which would create one time series per id) and status."""
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        started = time.perf_counter()
+        status = 500
+
+        async def capture(message: Message) -> None:
+            nonlocal status
+            if message["type"] == "http.response.start":
+                status = message["status"]
+            await send(message)
+
+        try:
+            await self.app(scope, receive, capture)
+        finally:
+            route = scope.get("route")
+            template = getattr(route, "path", "unmatched")
+            if template != "/metrics":
+                HTTP_LATENCY.labels(scope["method"], template, str(status)).observe(
+                    time.perf_counter() - started)

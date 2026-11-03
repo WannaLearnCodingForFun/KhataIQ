@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 import khataiq.pipeline.stages  # noqa: F401  (registers pipeline stages for admin retries)
 from khataiq.api import problems
-from khataiq.api.middleware import BodySizeLimitMiddleware, RequestIdMiddleware
+from khataiq.api.middleware import BodySizeLimitMiddleware, MetricsMiddleware, RequestIdMiddleware
 from khataiq.api.routes import (
     admin,
     assessments,
@@ -16,13 +16,17 @@ from khataiq.api.routes import (
     copilot,
     evidence,
     ledger,
+    ops,
     uploads,
 )
 from khataiq.config import get_settings
+from khataiq.observability import configure_logging, configure_tracing
 
 
 def create_app() -> FastAPI:
     settings = get_settings()
+    configure_logging()
+    configure_tracing("khataiq-api")
     app = FastAPI(title="KhataIQ", version="0.1.0",
                   description="Cash-flow evidence platform for small-business lending.")
     problems.install(app)
@@ -36,12 +40,13 @@ def create_app() -> FastAPI:
     )
     # Room for multipart framing around a maximum-size file.
     app.add_middleware(BodySizeLimitMiddleware, max_bytes=settings.max_upload_bytes + 64 * 1024)
+    app.add_middleware(MetricsMiddleware)
     app.add_middleware(RequestIdMiddleware)  # added last = outermost, so 413s carry an id too
 
-    @app.get("/healthz", tags=["ops"])
-    def healthz() -> dict[str, str]:
-        """Liveness probe: the process is up. It deliberately does not touch the database."""
-        return {"status": "ok"}
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+    FastAPIInstrumentor.instrument_app(app, excluded_urls="healthz,readyz,metrics")
+    app.include_router(ops.router)
 
     app.include_router(auth.router)
     app.include_router(businesses.router)
