@@ -14,7 +14,7 @@ Already in the repo: `khataiq/pipeline/normalize.py` (`parse_amount`, `format_pa
 (`DemoBankCsvParser.parse`), fixtures in `tests/fixtures/demo_bank/`, tests in `tests/test_normalize.py`
 and `tests/test_parsers.py`.
 
-- [ ] **M0.1** Implement every stub to its docstring. Do not edit the tests.
+- [x] **M0.1** Implement every stub to its docstring. Do not edit the tests.
   - All tests in `tests/` pass; mypy strict clean.
   - `parse_amount` rejects NaN, infinity, exponent notation, more than 2 decimals, and empty strings.
 - [ ] **M0.2** Following `docs/specs/parsers.md`, add `parsers/generic_csv.py`: a parser that takes
