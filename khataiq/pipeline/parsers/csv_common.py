@@ -25,18 +25,23 @@ def decode_statement(data: bytes) -> str:
     raise ParseError(0, "file is neither UTF-8 nor cp1252 text")
 
 
-def numbered_rows(text: str) -> list[NumberedRow]:
-    """Every row that has at least one non-empty cell, with its physical line number.
+def numbered_rows(text: str, *, keep_blank: bool = False) -> list[NumberedRow]:
+    """Rows with their physical line numbers. Rows whose cells are all empty are dropped
+    unless keep_blank is set.
 
-    csv.reader.line_num counts lines consumed so far, so blank lines are counted even though
+    csv.reader.line_num counts lines consumed so far, so blank lines are counted even when
     they are skipped, and CRLF endings are handled by the csv module itself.
     """
     reader = csv.reader(io.StringIO(text, newline=""))
     rows: list[NumberedRow] = []
     for cells in reader:
-        if any(cell.strip() for cell in cells):
+        if keep_blank or not is_blank(cells):
             rows.append((reader.line_num, cells))
     return rows
+
+
+def is_blank(cells: list[str]) -> bool:
+    return not any(cell.strip() for cell in cells)
 
 
 def amount_at(line_no: int, text: str) -> int:

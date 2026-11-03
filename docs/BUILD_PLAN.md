@@ -17,7 +17,7 @@ and `tests/test_parsers.py`.
 - [x] **M0.1** Implement every stub to its docstring. Do not edit the tests.
   - All tests in `tests/` pass; mypy strict clean.
   - `parse_amount` rejects NaN, infinity, exponent notation, more than 2 decimals, and empty strings.
-- [ ] **M0.2** Following `docs/specs/parsers.md`, add `parsers/generic_csv.py`: a parser that takes
+- [x] **M0.2** Following `docs/specs/parsers.md`, add `parsers/generic_csv.py`: a parser that takes
   a column-mapping config (date, narration, debit, credit, balance, utr columns) so new banks need config,
   not code. Register two configs: `hdfc_like` and `sbi_like` with fixtures you create.
   - Golden-file tests for both; a malformed row raises `ParseError` with the right line number.

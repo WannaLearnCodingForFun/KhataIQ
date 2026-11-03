@@ -1,0 +1,18 @@
+{
+  "parser_version": "hdfc-like-csv/1",
+  "opening_paise": 5000000,
+  "closing_paise": 3580000,
+  "rows": [
+    {"line_no": 6, "txn_date": "2026-11-01", "amount_paise": 125000, "direction": "credit",
+     "balance_after_paise": 5125000,
+     "narration": "UPI-RAMESH KIRANA-ramesh@okicici-412300000001-SALE", "utr": "412300000001"},
+    {"line_no": 7, "txn_date": "2026-11-02", "amount_paise": 1800000, "direction": "debit",
+     "balance_after_paise": 3325000, "narration": "NEFT DR-SBIN0004321-SHREE SUPPLIERS-INV 88",
+     "utr": "N306260001234567"},
+    {"line_no": 8, "txn_date": "2026-11-03", "amount_paise": 745000, "direction": "debit",
+     "balance_after_paise": 2580000, "narration": "ACH D- BAJAJ FINANCE EMI-LN99812",
+     "utr": null},
+    {"line_no": 9, "txn_date": "2026-11-05", "amount_paise": 1000000, "direction": "credit",
+     "balance_after_paise": 3580000, "narration": "CASH DEP, MG ROAD BRANCH", "utr": null}
+  ]
+}

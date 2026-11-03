@@ -3,9 +3,14 @@
 from __future__ import annotations
 
 from khataiq.pipeline.parsers.base import Parser
+from khataiq.pipeline.parsers.configs import ALL_CSV_CONFIGS
 from khataiq.pipeline.parsers.demo_csv import DemoBankCsvParser
+from khataiq.pipeline.parsers.generic_csv import GenericCsvParser
 
-ALL_PARSERS: list[Parser] = [DemoBankCsvParser()]
+ALL_PARSERS: list[Parser] = [
+    DemoBankCsvParser(),
+    *(GenericCsvParser(config) for config in ALL_CSV_CONFIGS),
+]
 
 
 def _build_registry(parsers: list[Parser]) -> dict[tuple[str, str], Parser]:
