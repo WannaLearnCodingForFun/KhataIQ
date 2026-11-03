@@ -37,6 +37,7 @@ from khataiq.models.enums import (
     pg_enum,
 )
 from khataiq.services.flags import dedupe_key, open_flag, supersede_stale
+from khataiq.textfmt import inr
 
 LEDGER_STATUSES = (UploadStatus.RECONCILED, UploadStatus.PROCESSED)
 
@@ -110,7 +111,7 @@ def run_evidence(s: Session, business_id: int) -> EvidenceResult:
         amount = max(by_id[i].amount_paise for i in group)
         if open_flag(s, org_id=business.org_id, business_id=business_id,
                      kind=FlagKind.UNRESOLVED_TRANSFER, rule_id="SELF_TRANSFER", rule_version=1,
-                     summary=f"{len(group)} transactions of {amount} paise could be transfers "
+                     summary=f"{len(group)} transactions of {inr(amount)} could be transfers "
                              "between the business's own accounts, but they can't be paired "
                              "with certainty", total_paise=amount, txn_ids=sorted(group)):
             opened += 1

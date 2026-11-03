@@ -28,6 +28,7 @@ from datetime import date, timedelta
 
 from khataiq.evidence.graph import bounded_simple_cycles, strongly_connected_components
 from khataiq.evidence.types import LedgerTxn
+from khataiq.textfmt import inr
 
 RULE_ID, RULE_VERSION = "CYCLE", 1
 WINDOW_DAYS = 30
@@ -181,8 +182,15 @@ def _assess(cycle: list[str], graph: dict[tuple[str, str], Edge], start: date,
                         max(dates))
 
 
+def _node_name(node: str) -> str:
+    """'ACCT:12' -> 'account 12', 'name:RAVI TRADERS' -> 'RAVI TRADERS', 'vpa:x@ybl' -> 'x@ybl'."""
+    kind, _, value = node.partition(":")
+    return f"account {value}" if kind == "ACCT" else value
+
+
 def describe(finding: CycleFinding) -> str:
-    path = " -> ".join((*finding.path, finding.path[0]))
-    return (f"Money went round {path}: {finding.out_paise} paise out, {finding.back_paise} "
-            f"paise back, {finding.first_date.isoformat()} to {finding.last_date.isoformat()}")
+    path = " → ".join(_node_name(n) for n in (*finding.path, finding.path[0]))
+    return (f"Money went round {path}: {inr(finding.out_paise)} out and "
+            f"{inr(finding.back_paise)} back between {finding.first_date:%d %b} and "
+            f"{finding.last_date:%d %b %Y}")
 

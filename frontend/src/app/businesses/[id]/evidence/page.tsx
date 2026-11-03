@@ -20,6 +20,28 @@ function cycleEdges(graph: Graph): Set<string> {
   return keys;
 }
 
+const MAX_COUNTERPARTIES = 20;
+
+/** Keep the graph readable: every account, every node on a cycle, and the counterparties with
+ * the largest total flow. A month of UPI sales can have a hundred one-off customers. */
+function focus(graph: Graph): { graph: Graph; hidden: number } {
+  const onCycle = new Set(graph.cycles.flat());
+  const flow = new Map<string, number>();
+  for (const e of graph.edges) {
+    flow.set(e.from, (flow.get(e.from) ?? 0) + e.total_paise);
+    flow.set(e.to, (flow.get(e.to) ?? 0) + e.total_paise);
+  }
+  const counterparties = graph.nodes.filter((n) => n.kind === "counterparty");
+  const top = new Set(
+    [...counterparties].sort((a, b) => (flow.get(b.id) ?? 0) - (flow.get(a.id) ?? 0)).slice(0, MAX_COUNTERPARTIES).map((n) => n.id),
+  );
+  const keep = new Set(graph.nodes.filter((n) => n.kind === "account" || onCycle.has(n.id) || top.has(n.id)).map((n) => n.id));
+  return {
+    graph: { ...graph, nodes: graph.nodes.filter((n) => keep.has(n.id)), edges: graph.edges.filter((e) => keep.has(e.from) && keep.has(e.to)) },
+    hidden: graph.nodes.length - keep.size,
+  };
+}
+
 function GraphCanvas({ graph, onSelect }: { graph: Graph; onSelect: (edge: Edge) => void }) {
   const container = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -43,12 +65,26 @@ function GraphCanvas({ graph, onSelect }: { graph: Graph; onSelect: (edge: Edge)
           })),
         ],
         style: [
-          { selector: "node", style: { label: "data(label)", "font-size": 10, "background-color": "#94a3b8", width: 18, height: 18 } },
-          { selector: "node[kind = 'account']", style: { shape: "round-rectangle", "background-color": "#1f6f5b", width: 30, height: 22 } },
-          { selector: "edge", style: { width: "data(width)", "curve-style": "bezier", "target-arrow-shape": "triangle", "line-color": "#cbd5e1", "target-arrow-color": "#cbd5e1" } },
-          { selector: "edge[cycle = 1]", style: { "line-color": "#b4405c", "target-arrow-color": "#b4405c" } },
+          {
+            selector: "node",
+            style: {
+              label: "data(label)", "font-size": 9, color: "#334155", "background-color": "#94a3b8",
+              width: 14, height: 14, "text-valign": "bottom", "text-margin-y": 3,
+              "text-max-width": "90px", "text-wrap": "ellipsis",
+            },
+          },
+          {
+            selector: "node[kind = 'account']",
+            style: { shape: "round-rectangle", "background-color": "#1f6f5b", width: 34, height: 24, "font-size": 11, "font-weight": "bold", color: "#1f6f5b" },
+          },
+          { selector: "edge", style: { width: "data(width)", "curve-style": "bezier", "target-arrow-shape": "triangle", "line-color": "#cbd5e1", "target-arrow-color": "#cbd5e1", opacity: 0.8 } },
+          { selector: "edge[cycle = 1]", style: { "line-color": "#b4405c", "target-arrow-color": "#b4405c", opacity: 1 } },
         ],
-        layout: { name: "cose", animate: false },
+        // Accounts in the middle, counterparties in rings around them.
+        layout: {
+          name: "concentric", animate: false, minNodeSpacing: 28,
+          concentric: (node) => (node.data("kind") === "account" ? 2 : 1), levelWidth: () => 1,
+        },
       });
       cy.on("tap", "edge", (event) => {
         const edge = graph.edges[event.target.data("index") as number];
@@ -91,6 +127,7 @@ function Evidence({ businessId }: { businessId: number }) {
     },
   });
   const onSelect = useMemo(() => (edge: Edge) => setSelected(edge), []);
+  const focused = useMemo(() => (graph.data ? focus(graph.data) : null), [graph.data]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -112,7 +149,17 @@ function Evidence({ businessId }: { businessId: number }) {
           {graph.isPending && <Loading />}
           {graph.isError && <ErrorBox error={graph.error} />}
           {graph.data && graph.data.edges.length === 0 && <Empty>No money flows with known counterparties in this window.</Empty>}
-          {graph.data && graph.data.edges.length > 0 && <GraphCanvas graph={graph.data} onSelect={onSelect} />}
+          {focused && focused.graph.edges.length > 0 && (
+            <>
+              <GraphCanvas graph={focused.graph} onSelect={onSelect} />
+              {focused.hidden > 0 && (
+                <p className="mt-2 text-xs text-[var(--muted)]">
+                  Showing the {MAX_COUNTERPARTIES} counterparties with the largest flows and everything on a cycle; {focused.hidden} smaller
+                  ones are hidden.
+                </p>
+              )}
+            </>
+          )}
         </Card>
         <Card title={selected ? "Transactions on this edge" : "Click an edge"}>
           {selected && (

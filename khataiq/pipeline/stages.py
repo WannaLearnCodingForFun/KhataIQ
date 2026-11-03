@@ -27,6 +27,7 @@ from khataiq.pipeline.runner import (
 )
 from khataiq.services.flags import open_flag
 from khataiq.storage import get_store
+from khataiq.textfmt import inr
 
 RECON_RULE = ("RECONCILIATION", 1)
 
@@ -130,7 +131,7 @@ def stage_reconcile(s: Session, upload: Upload) -> StageResult:
             kind=FlagKind.NEEDS_REVIEW_UPLOAD, rule_id=RECON_RULE[0],
             rule_version=RECON_RULE[1], upload_id=upload.id, scope=f"upload:{upload.id}",
             summary=f"Upload {upload.id} does not reconcile at {where}: expected "
-                    f"{expected} paise, statement shows {actual} paise",
+                    f"{inr(expected)}, the statement shows {inr(actual)}",
             total_paise=abs(expected - actual), txn_ids=[txns[evidence_index].id],
             details={"reason": result.reason, "break_line": upload.recon_break_line},
         )

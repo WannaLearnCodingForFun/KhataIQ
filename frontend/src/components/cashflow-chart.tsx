@@ -33,9 +33,10 @@ export function CashflowChart({ months }: { months: Month[] }) {
             }}
           />
           <Legend />
-          <Bar dataKey="gross" name="Gross inflow" fill="#cbd5e1" fillOpacity={0.5} />
-          <Area dataKey="band" name="Uncertain" stroke="none" fill="#b7791f" fillOpacity={0.25} />
-          <Line dataKey="net" name="Net business inflow" stroke="#1f6f5b" strokeWidth={2} dot={{ r: 3 }} />
+          {/* No animation: the numbers are the point, and it respects reduced-motion users. */}
+          <Bar dataKey="gross" name="Gross inflow" fill="#cbd5e1" fillOpacity={0.5} isAnimationActive={false} />
+          <Area dataKey="band" name="Uncertain" stroke="none" fill="#b7791f" fillOpacity={0.25} isAnimationActive={false} />
+          <Line dataKey="net" name="Net business inflow" stroke="#1f6f5b" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
         </ComposedChart>
       </ResponsiveContainer>
     </div>
