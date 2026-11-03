@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #18212f;
+  --muted: #5b6575;
+  --line: #e3e7ee;
+  --paper: #f7f8fb;
+  --brand: #1f6f5b;
+  --verified: #1f6f5b;
+  --inferred: #b7791f;
+  --unresolved: #b4405c;
+}
+
+body {
+  color: var(--ink);
+  background: var(--paper);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}

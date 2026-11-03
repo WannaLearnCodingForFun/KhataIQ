@@ -121,12 +121,12 @@ and `tests/test_parsers.py`.
     tool results is rejected; a clean answer passes.
 
 ## M10 — Frontend (`docs/specs/frontend.md`)
-- [ ] **M10.1** Next.js app scaffold, auth flow (login, refresh, logout), typed API client generated
+- [x] **M10.1** Next.js app scaffold, auth flow (login, refresh, logout), typed API client generated
   from the OpenAPI spec (`openapi-typescript`).
-- [ ] **M10.2** Owner pages: businesses, accounts, upload with live status.
-- [ ] **M10.3** Officer pages: business overview (cash-flow chart with uncertain band), transactions
+- [x] **M10.2** Owner pages: businesses, accounts, upload with live status.
+- [x] **M10.3** Officer pages: business overview (cash-flow chart with uncertain band), transactions
   table, evidence graph view, flags queue, assessment panel, copilot panel.
-- [ ] **M10.4** Playwright smoke test: login → upload fixture → see metrics → resolve a flag.
+- [x] **M10.4** Playwright smoke test: login → upload fixture → see metrics → resolve a flag.
 
 ## M11 — Production readiness
 - [ ] **M11.1** structlog JSON logs with masking processor; OpenTelemetry; Prometheus `/metrics`;
