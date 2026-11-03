@@ -6,8 +6,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from khataiq.api import problems
-from khataiq.api.middleware import RequestIdMiddleware
-from khataiq.api.routes import auth, businesses
+from khataiq.api.middleware import BodySizeLimitMiddleware, RequestIdMiddleware
+from khataiq.api.routes import auth, businesses, uploads
 from khataiq.config import get_settings
 
 
@@ -24,7 +24,9 @@ def create_app() -> FastAPI:
         allow_headers=["Authorization", "Content-Type", "Idempotency-Key", "X-Request-ID"],
         expose_headers=["X-Request-ID", "Retry-After"],
     )
-    app.add_middleware(RequestIdMiddleware)
+    # Room for multipart framing around a maximum-size file.
+    app.add_middleware(BodySizeLimitMiddleware, max_bytes=settings.max_upload_bytes + 64 * 1024)
+    app.add_middleware(RequestIdMiddleware)  # added last = outermost, so 413s carry an id too
 
     @app.get("/healthz", tags=["ops"])
     def healthz() -> dict[str, str]:
@@ -33,6 +35,7 @@ def create_app() -> FastAPI:
 
     app.include_router(auth.router)
     app.include_router(businesses.router)
+    app.include_router(uploads.router)
     return app
 
 

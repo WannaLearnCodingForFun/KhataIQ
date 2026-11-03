@@ -27,6 +27,8 @@ from khataiq.db import Base, get_engine, get_sessionmaker
 if TYPE_CHECKING:
     from fastapi.testclient import TestClient
 
+    from khataiq.storage import ObjectStore
+
 TEST_DB_URL = os.environ.get("KHATAIQ_TEST_DATABASE_URL")
 APP_PASSWORD = "khataiq_app"
 
@@ -190,3 +192,19 @@ def login(client: TestClient, email: str, password: str = PASSWORD) -> dict[str,
     response = client.post("/v1/auth/login", json={"email": email, "password": password})
     assert response.status_code == 200, response.text
     return {"Authorization": f"Bearer {response.json()['access_token']}"}
+
+
+@pytest.fixture()
+def s3(monkeypatch: pytest.MonkeyPatch) -> Iterator[ObjectStore]:
+    """An in-memory S3 (moto) behind khataiq.storage.get_store()."""
+    from moto import mock_aws
+
+    from khataiq.storage import get_store
+
+    monkeypatch.setenv("KHATAIQ_S3_ENDPOINT", "")
+    get_settings.cache_clear()
+    get_store.cache_clear()
+    with mock_aws():
+        yield get_store()
+    get_settings.cache_clear()
+    get_store.cache_clear()

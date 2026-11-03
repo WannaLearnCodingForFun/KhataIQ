@@ -54,12 +54,12 @@ and `tests/test_parsers.py`.
 ## M3 — Uploads
 - [x] **M3.1** `storage.py`: MinIO client (boto3), `put_object`, `get_object`, bucket auto-create in dev.
   Tests use `moto` for S3.
-- [ ] **M3.2** `POST /v1/accounts/{id}/uploads` (multipart): size ≤ 10 MB, CSV/PDF sniffed, SHA-256,
+- [x] **M3.2** `POST /v1/accounts/{id}/uploads` (multipart): size ≤ 10 MB, CSV/PDF sniffed, SHA-256,
   idempotency-key handling (table `idempotency_keys`), upload + outbox row in one transaction.
   - Test: same file twice → second response 200 with the same upload id, no new rows anywhere.
   - Test: same `Idempotency-Key` with a different file → 409.
   - Test: DB failure after the S3 write leaves no upload row (orphan object is acceptable; note why).
-- [ ] **M3.3** `GET /v1/uploads/{id}` status endpoint, including reconciliation break details.
+- [x] **M3.3** `GET /v1/uploads/{id}` status endpoint, including reconciliation break details.
 
 ## M4 — Pipeline
 - [ ] **M4.1** `pipeline/celery_app.py`, beat schedule, outbox relay task with `FOR UPDATE SKIP LOCKED`.
