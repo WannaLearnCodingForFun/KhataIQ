@@ -105,7 +105,7 @@ and `tests/test_parsers.py`.
   - Acceptance: self-transfer precision ≥ 0.98 on the default config (if not, fix rules, not the data).
 
 ## M8 — ML (`docs/specs/ml.md`)
-- [ ] **M8.1** Rule labeller (`classify/rules.py`) with a versioned rule table.
+- [x] **M8.1** Rule labeller (`classify/rules.py`) with a versioned rule table.
 - [ ] **M8.2** Label model: TF-IDF + logistic regression trained on synthetic labelled narrations;
   saved with version; classify stage uses it for rows rules missed. Report macro-F1 vs rules-only.
 - [ ] **M8.3** `experiments/forecast/`: rolling-origin evaluation, LightGBM vs seasonal-naive; MLflow
