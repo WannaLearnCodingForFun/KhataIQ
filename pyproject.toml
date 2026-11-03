@@ -10,6 +10,7 @@ dependencies = [
     "alembic>=1.13",
     "pydantic-settings>=2.4",
     "pdfplumber>=0.11",
+    "argon2-cffi>=23.1",
 ]
 
 [project.optional-dependencies]

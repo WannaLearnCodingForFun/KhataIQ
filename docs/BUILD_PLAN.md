@@ -35,7 +35,7 @@ and `tests/test_parsers.py`.
   table; revoke UPDATE/DELETE on `audit_log` from the app role.
   - Integration test: with `app.org_id = 1`, selecting a row of org 2 returns nothing.
   - Integration test: `UPDATE audit_log` as the app role fails with a permission error.
-- [ ] **M1.3** `khataiq/db.py`: `tenant_session(org_id)` context manager that opens a transaction and
+- [x] **M1.3** `khataiq/db.py`: `tenant_session(org_id)` context manager that opens a transaction and
   runs `SET LOCAL app.org_id`. Seed script `scripts/seed_dev.py` (1 org, 3 users of each role, 2 businesses).
 
 ## M2 — Auth and core resources
