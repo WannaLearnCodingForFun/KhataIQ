@@ -9,7 +9,8 @@ const OFFICER = "officer1@demo.khataiq.dev";
 const STATEMENT = path.join(__dirname, "fixtures", "october.csv");
 
 async function signIn(page: Page, email: string) {
-  await page.goto("/login");
+  // After "Sign out" the app is already redirecting to /login; navigating again would race it.
+  if (!page.url().endsWith("/login")) await page.goto("/login");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(PASSWORD);
   await page.getByRole("button", { name: "Sign in" }).click();
@@ -33,6 +34,8 @@ test("owner uploads a statement, sees metrics; officer resolves the flag it rais
 
   // Officer: the round trip through RAVI TRADERS is in the review queue; dismiss it with a note.
   await page.getByRole("button", { name: "Sign out" }).click();
+  await page.waitForURL("**/login");
+  await expect(page.getByLabel("Email")).toBeVisible();
   await signIn(page, OFFICER);
   await page.getByRole("link", { name: "Review queue" }).click();
   const flag = page.getByRole("button", { name: /RAVI TRADERS/ });
