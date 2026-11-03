@@ -100,7 +100,7 @@ and `tests/test_parsers.py`.
 ## M7 — Synthetic data and evaluation (`docs/specs/synthetic-data.md`)
 - [x] **M7.1** `synthetic/generator.py`: seeded generator of businesses, accounts and statements with a
   ground-truth JSON (true self-transfers, reversals, duplicates, cycles, true labels).
-- [ ] **M7.2** `synthetic/evaluate.py`: runs the full pipeline on N generated businesses and writes
+- [x] **M7.2** `synthetic/evaluate.py`: runs the full pipeline on N generated businesses and writes
   `docs/results/evidence_eval.md` with precision/recall per rule. Wire a small run into CI.
   - Acceptance: self-transfer precision ≥ 0.98 on the default config (if not, fix rules, not the data).
 
