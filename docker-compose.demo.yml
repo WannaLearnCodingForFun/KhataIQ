@@ -1,0 +1,39 @@
+# Local demo on top of the production stack: demo secrets, plain-http cookies on localhost, a seeded
+# org and six months of synthetic history. Start it with scripts/demo.sh. Never use this for a real
+# deployment: every password here is public.
+x-demo-env: &demo-env
+  KHATAIQ_ENVIRONMENT: dev
+  KHATAIQ_COOKIE_SECURE: "false"   # http://localhost has no TLS
+
+services:
+  migrate:
+    environment: *demo-env
+  api:
+    environment: *demo-env
+  worker:
+    environment: *demo-env
+  beat:
+    environment: *demo-env
+
+  seed:
+    build: .
+    image: khataiq-app:${KHATAIQ_VERSION:-latest}
+    restart: "no"
+    command: ["sh", "-c", "python scripts/seed_dev.py && python ops/load/prepare.py"]
+    environment:
+      <<: *demo-env
+      PYTHONPATH: /app   # synthetic/ is mounted, not installed
+      KHATAIQ_LABEL_MODEL_DIR: /app/models/label/v1
+      KHATAIQ_MIGRATION_DATABASE_URL: postgresql+psycopg://khataiq:${POSTGRES_PASSWORD}@postgres:5432/khataiq
+      KHATAIQ_DATABASE_URL: postgresql+psycopg://khataiq_app:${APP_DB_PASSWORD}@postgres:5432/khataiq
+      KHATAIQ_REDIS_URL: redis://redis:6379/0
+      KHATAIQ_S3_ENDPOINT: http://minio:9000
+      KHATAIQ_S3_ACCESS_KEY: ${MINIO_ROOT_USER}
+      KHATAIQ_S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      KHATAIQ_JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - ./synthetic:/app/synthetic:ro
+      - ./ops/load:/app/ops/load:ro
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      minio: { condition: service_started }

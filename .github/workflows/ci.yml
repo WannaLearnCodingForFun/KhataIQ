@@ -141,3 +141,14 @@ jobs:
       - run: docker build -t khataiq-web:ci frontend
       - name: The app image starts and imports
         run: docker run --rm khataiq-app:ci python -c "import khataiq.api.main, khataiq.pipeline.celery_app; print('ok')"
+      - name: The one-command demo starts, seeds and serves through the web proxy
+        run: |
+          scripts/demo.sh
+          for _ in $(seq 1 60); do curl -sf http://localhost:3000/login >/dev/null && break; sleep 2; done
+          token=$(curl -sf -X POST http://localhost:3000/v1/auth/login -H 'content-type: application/json' \
+            -d '{"email":"officer1@demo.khataiq.dev","password":"khataiq-dev-password"}' \
+            | python3 -c "import json, sys; print(json.load(sys.stdin)['access_token'])")
+          curl -sf -H "authorization: Bearer $token" http://localhost:3000/v1/businesses/1/metrics \
+            | python3 -c "import json, sys; m = json.load(sys.stdin)['months']; assert len(m) >= 6, m; print(len(m), 'months')"
+      - if: failure()
+        run: scripts/demo.sh logs --tail 80

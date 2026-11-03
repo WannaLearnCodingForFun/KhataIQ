@@ -1,4 +1,7 @@
-"""Load-test data: the seeded dev org plus six months of synthetic history for business 1."""
+"""Demo and load-test data: six months of synthetic history for the first seeded business.
+
+Safe to run twice: if that business already has statements, nothing is loaded.
+"""
 
 from __future__ import annotations
 
@@ -9,7 +12,7 @@ from sqlalchemy.orm import Session
 
 import khataiq.pipeline.stages  # noqa: F401
 from khataiq.config import get_settings
-from khataiq.models import Account, Business, User
+from khataiq.models import Account, Business, Upload, User
 from khataiq.models.enums import UserRole
 from khataiq.pipeline.outbox import pipeline_publisher, relay_once
 from khataiq.pipeline.runner import InlineDispatcher
@@ -25,7 +28,11 @@ if __name__ == "__main__":
         owner = s.get(User, business.owner_user_id)
         accounts = list(s.scalars(select(Account).where(Account.business_id == business.id)
                                   .order_by(Account.id)))
+        already = s.scalar(select(Upload.id).where(Upload.account_id.in_([a.id for a in accounts])))
     assert owner is not None
+    if already is not None:
+        print(f"business {business.id} already has statements; nothing to do")
+        raise SystemExit(0)
     principal = Principal(owner.id, owner.org_id, UserRole.OWNER)
     biz = generate(42, GenConfig(min_accounts=2, max_accounts=2))
     for st in sorted(biz.statements, key=lambda s: (s.statement_index, s.account_index)):
