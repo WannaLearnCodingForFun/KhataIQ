@@ -2,7 +2,7 @@
 
 Make tests/test_normalize.py pass:  pytest -q tests/test_normalize.py
 
-Rules for this file (also in CLAUDE.md):
+Rules for this file:
   * Pure functions only. No database, no I/O.
   * Money is always int paise. Do NOT go through float, not even for a moment.
   * Every bad input raises ValueError with a message saying what was wrong.

@@ -2,7 +2,7 @@
 
 Make every test in tests/test_ledger.py pass:  pytest -q
 
-Rules for this file (also in CLAUDE.md):
+Rules for this file:
   * Pure functions only. No database, no I/O, no framework imports.
   * Money is always int paise. A float anywhere here is a bug.
   * Deterministic: same input -> same output, every time.
