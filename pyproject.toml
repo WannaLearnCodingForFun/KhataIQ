@@ -18,11 +18,13 @@ dependencies = [
     "pyjwt>=2.9",
     "redis>=5.0",
     "email-validator>=2.1",
+    "boto3>=1.34",
+    "python-multipart>=0.0.9",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "hypothesis>=6", "ruff>=0.6", "mypy>=1.11", "httpx>=0.27",
-       "reportlab>=4.2"]
+       "reportlab>=4.2", "moto[s3]>=5.0"]
 
 [tool.setuptools.packages.find]
 include = ["khataiq*"]
@@ -54,3 +56,7 @@ known-third-party = ["alembic"]
 [tool.mypy]
 python_version = "3.11"
 strict = true
+
+[[tool.mypy.overrides]]
+module = ["boto3.*", "botocore.*", "moto.*"]
+ignore_missing_imports = true

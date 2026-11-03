@@ -52,7 +52,7 @@ and `tests/test_parsers.py`.
   - Test: 61st request in a minute returns 429 with `Retry-After`.
 
 ## M3 — Uploads
-- [ ] **M3.1** `storage.py`: MinIO client (boto3), `put_object`, `get_object`, bucket auto-create in dev.
+- [x] **M3.1** `storage.py`: MinIO client (boto3), `put_object`, `get_object`, bucket auto-create in dev.
   Tests use `moto` for S3.
 - [ ] **M3.2** `POST /v1/accounts/{id}/uploads` (multipart): size ≤ 10 MB, CSV/PDF sniffed, SHA-256,
   idempotency-key handling (table `idempotency_keys`), upload + outbox row in one transaction.

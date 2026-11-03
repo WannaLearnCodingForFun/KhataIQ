@@ -24,7 +24,7 @@ class Settings(BaseSettings):
 
     redis_url: str = "redis://localhost:6379/0"
 
-    s3_endpoint: str = "http://localhost:9000"
+    s3_endpoint: str | None = "http://localhost:9000"  # None/empty = real AWS S3
     s3_access_key: str = "khataiq"
     s3_secret_key: SecretStr = SecretStr("khataiq-dev-secret")
     s3_bucket: str = "statements"
