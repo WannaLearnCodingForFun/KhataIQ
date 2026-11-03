@@ -15,11 +15,18 @@ from sqlalchemy.orm import Session
 from khataiq import audit
 from khataiq.errors import BadRequest, NotFound
 from khataiq.evidence import cycles
+from khataiq.evidence.types import Link
 from khataiq.models import Account, Transaction, TxnLabelRow, Upload, UploadRow
 from khataiq.models.enums import EvidenceKind, EvidenceLevel, LabelMethod, TxnLabel
 from khataiq.principal import Principal
 from khataiq.services import access
-from khataiq.services.evidence import LEDGER_STATUSES, current_labels, current_links, load_ledger
+from khataiq.services.evidence import (
+    LEDGER_STATUSES,
+    current_labels,
+    current_links,
+    explained_by_reversals,
+    load_ledger,
+)
 
 _LEVEL_RANK = {EvidenceLevel.VERIFIED: 0, EvidenceLevel.INFERRED: 1, EvidenceLevel.UNRESOLVED: 2}
 
@@ -159,15 +166,19 @@ def graph(s: Session, p: Principal, business_id: int, since: date | None,
     if since > until:
         raise BadRequest("from must not be after to")
     end = until + timedelta(days=1)
-    _, links = current_links(s, business_id, EvidenceKind.SELF_TRANSFER)
-    pairs = [(link.txn_a, link.txn_b) for link in links if link.txn_b is not None]
-    edges = cycles.build_graph(txns, pairs, since, end)
+    _, rows = current_links(s, business_id)
+    pairs = [(r.txn_a, r.txn_b) for r in rows
+             if r.kind == EvidenceKind.SELF_TRANSFER and r.txn_b is not None]
+    explained = explained_by_reversals([
+        Link(r.kind, r.txn_a, r.txn_b, r.level, r.rule_id, r.rule_version)
+        for r in rows if r.kind == EvidenceKind.REVERSAL])
+    edges = cycles.build_graph(txns, pairs, since, end, explained)
     masks = {cycles.account_node(a.id): f"A/c ••{a.mask}" for a in accounts}
     node_ids = sorted({n for edge in edges for n in edge})
     nodes = [(n, masks.get(n, n.split(":", 1)[-1]),
               "account" if n.startswith("ACCT:") else "counterparty") for n in node_ids]
     window = [t for t in txns if since <= t.txn_date < end]
-    found = cycles.find_cycles(window, pairs)
+    found = cycles.find_cycles(window, pairs, explained)
     return GraphView(
         since, end, nodes,
         [(u, v, e.total_paise, sorted(e.txn_ids)) for (u, v), e in sorted(edges.items())],

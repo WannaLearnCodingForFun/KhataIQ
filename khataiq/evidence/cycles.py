@@ -5,7 +5,9 @@ For each 30-day window (windows start on the 1st and the 16th of every month, so
      keys. A debit is an edge ACCT -> counterparty, a credit counterparty -> ACCT, and a
      self-transfer between two of the business's accounts is ACCT -> ACCT. Edges carry the
      total paise, the transaction ids and dates. Rows without a counterparty key can't be
-     placed and are left out; self-transfer legs never become counterparty edges.
+     placed and are left out; self-transfer legs never become counterparty edges, and legs of
+     verified reversals are left out (a refunded payment is a round trip that is already
+     explained, not circular money).
   2. Strongly connected components (iterative Tarjan).
   3. In each component with 2+ nodes: simple cycles through an account node, up to 4 hops,
      at most 50 per component.
@@ -72,13 +74,14 @@ def window_starts(first: date, last: date) -> list[date]:
     return starts
 
 
-def find_cycles(txns: list[LedgerTxn],
-                self_transfers: list[tuple[int, int]]) -> list[CycleFinding]:
-    """self_transfers: (debit_id, credit_id) pairs from SELF_TRANSFER links (any level)."""
+def find_cycles(txns: list[LedgerTxn], self_transfers: list[tuple[int, int]],
+                explained: frozenset[int] = frozenset()) -> list[CycleFinding]:
+    """self_transfers: (debit_id, credit_id) pairs from SELF_TRANSFER links (any level).
+    explained: ids already accounted for by another rule (legs of verified reversals)."""
     if not txns:
         return []
     by_id = {t.id: t for t in txns}
-    internal = {i for pair in self_transfers for i in pair}
+    internal = {i for pair in self_transfers for i in pair} | explained
     findings: dict[tuple[int, ...], CycleFinding] = {}
     first, last = min(t.txn_date for t in txns), max(t.txn_date for t in txns)
     for start in window_starts(first, last):
@@ -90,11 +93,11 @@ def find_cycles(txns: list[LedgerTxn],
 
 
 def build_graph(txns: list[LedgerTxn], self_transfers: list[tuple[int, int]], start: date,
-                end: date) -> dict[tuple[str, str], Edge]:
+                end: date, explained: frozenset[int] = frozenset()) -> dict[tuple[str, str], Edge]:
     """The money-flow graph for [start, end): what the cycle rule sees, and what the evidence
     view draws."""
     by_id = {t.id: t for t in txns}
-    internal = {i for pair in self_transfers for i in pair}
+    internal = {i for pair in self_transfers for i in pair} | explained
     return _window_graph(by_id, internal, self_transfers, start, end)
 
 

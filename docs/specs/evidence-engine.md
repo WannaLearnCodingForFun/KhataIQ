@@ -44,7 +44,8 @@ from business inflow at level inferred.
    overlapping). Nodes = the business (`SELF`) and each `counterparty_key`. Edges: debit → `SELF → cp`,
    credit → `cp → SELF`, weighted by total paise.
 2. Add edges between counterparties only when both legs are known (multi-account self-transfers make
-   accounts nodes: `ACCT:<id>`).
+   accounts nodes: `ACCT:<id>`). Legs of verified reversals are left out of the graph: a refunded
+   payment is a round trip that REVERSAL already explains.
 3. Find strongly connected components with **iterative Tarjan**.
 4. In each SCC with ≥ 2 nodes, enumerate simple cycles through `SELF` of length ≤ 4 (bounded DFS
    from `SELF`, nodes ordered by id to avoid duplicates), max 50 per SCC.

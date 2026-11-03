@@ -90,7 +90,8 @@ def run_evidence(s: Session, business_id: int) -> EvidenceResult:
     txns, accounts = load_ledger(s, business_id)
 
     transfers = self_transfer_links(txns, accounts)
-    links = transfers + reversal_links(txns) + duplicate_links(txns) + loan_links(txns)
+    reversals = reversal_links(txns)
+    links = transfers + reversals + duplicate_links(txns) + loan_links(txns)
     run = EvidenceRun(org_id=business.org_id, business_id=business_id, link_count=len(links),
                       txn_count=len(txns))
     s.add(run)
@@ -113,7 +114,7 @@ def run_evidence(s: Session, business_id: int) -> EvidenceResult:
             opened += 1
 
     pairs = [(link.txn_a, link.txn_b) for link in transfers if link.txn_b is not None]
-    found = cycles.find_cycles(txns, pairs)
+    found = cycles.find_cycles(txns, pairs, explained_by_reversals(reversals))
     for finding in found:
         if open_flag(s, org_id=business.org_id, business_id=business_id, kind=FlagKind.CYCLE,
                      rule_id=cycles.RULE_ID, rule_version=cycles.RULE_VERSION,
@@ -125,6 +126,12 @@ def run_evidence(s: Session, business_id: int) -> EvidenceResult:
                               "back_paise": finding.back_paise}):
             opened += 1
     return EvidenceResult(run.id, links, found, opened)
+
+
+def explained_by_reversals(reversals: list[Link]) -> frozenset[int]:
+    """Both legs of every verified reversal: a refund is a round trip with an explanation."""
+    return frozenset(i for link in reversals if link.level == EvidenceLevel.VERIFIED
+                     for i in (link.txn_a, link.txn_b) if i is not None)
 
 
 def _unresolved_transfer_groups(transfers: list[Link]) -> list[set[int]]:

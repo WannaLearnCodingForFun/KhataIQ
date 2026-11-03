@@ -136,3 +136,9 @@ def test_unknown_counterparties_are_left_out():
 def test_overlapping_windows_report_a_cycle_once():
     out, back = round_trip(2_000_000, 2_000_000, back_day=8)  # inside two windows
     assert len(find_cycles([out, back], [])) == 1
+
+
+def test_a_verified_refund_is_not_a_cycle():
+    out, back = round_trip(2_000_000, 2_000_000, back_day=4)
+    assert len(find_cycles([out, back], [])) == 1
+    assert find_cycles([out, back], [], frozenset({out.id, back.id})) == []
