@@ -133,7 +133,7 @@ and `tests/test_parsers.py`.
   `/readyz`; Grafana dashboard JSON in `ops/grafana/`.
 - [x] **M11.2** Locust load test in `ops/load/`; results in `docs/results/load.md` (scenario,
   hardware, target p95, measured p95 — report honestly, even if it misses).
-- [ ] **M11.3** Dockerfiles, `docker-compose.prod.yml`, CI: integration tests with service containers,
+- [x] **M11.3** Dockerfiles, `docker-compose.prod.yml`, CI: integration tests with service containers,
   `pip-audit`, image build; deploy notes in `docs/deploy.md`.
 - [ ] **M11.4** README: one-paragraph pitch, architecture diagram (Mermaid), screenshots, how to run in
   one command, results tables linked from `docs/results/`, design decisions, limitations.

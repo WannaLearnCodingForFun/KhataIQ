@@ -20,16 +20,20 @@ export KHATAIQ_ENVIRONMENT=test
 psql "$PG_ADMIN_URL" -qc "DROP DATABASE IF EXISTS $DB" -c "CREATE DATABASE $DB"
 alembic upgrade head
 python scripts/seed_dev.py
-redis-cli -u "$KHATAIQ_REDIS_URL" flushdb >/dev/null
+python -c "import os, redis; redis.Redis.from_url(os.environ['KHATAIQ_REDIS_URL']).flushdb()"
 
 pids=()
-cleanup() { kill "${pids[@]}" 2>/dev/null || true; wait 2>/dev/null || true; }
+cleanup() {
+  kill "${pids[@]}" 2>/dev/null || true
+  pkill -f ".next/standalone/server.js" 2>/dev/null || true  # started by npm as a child
+  wait 2>/dev/null || true
+}
 trap cleanup EXIT
 
 uvicorn khataiq.api.main:app --port 8000 --log-level warning & pids+=($!)
 celery -A khataiq.pipeline.celery_app worker --pool=solo -Q pipeline -l warning & pids+=($!)
 celery -A khataiq.pipeline.celery_app beat -l warning --schedule "$(mktemp -u)" & pids+=($!)
-(cd frontend && npm run build >/dev/null && npx next start --port 3000) & pids+=($!)
+(cd frontend && npm run build >/dev/null && npm run start) & pids+=($!)
 
 for url in http://localhost:8000/healthz http://localhost:3000/login; do
   for _ in $(seq 1 120); do curl -sf "$url" >/dev/null && break; sleep 1; done

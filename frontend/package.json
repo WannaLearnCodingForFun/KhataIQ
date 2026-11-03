@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --port 3000",
     "build": "next build",
-    "start": "next start --port 3000",
+    "start": "cp -r .next/static .next/standalone/.next/ && PORT=3000 node .next/standalone/server.js",
     "typecheck": "tsc --noEmit",
     "gen:api": "openapi-typescript openapi.json -o src/lib/api-schema.d.ts",
     "e2e": "playwright test"

@@ -1,0 +1,16 @@
+.git
+**/__pycache__
+**/*.pyc
+.mypy_cache
+.pytest_cache
+.ruff_cache
+.hypothesis
+.data
+.env
+frontend
+experiments
+docs
+tests
+synthetic
+ops/load
+*.egg-info

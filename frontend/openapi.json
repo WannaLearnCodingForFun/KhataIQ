@@ -2081,7 +2081,6 @@
  "paths": {
   "/healthz": {
    "get": {
-    "description": "Liveness probe: the process is up. It deliberately does not touch the database.",
     "operationId": "healthz_healthz_get",
     "responses": {
      "200": {
@@ -2100,6 +2099,25 @@
      }
     },
     "summary": "Healthz",
+    "tags": [
+     "ops"
+    ]
+   }
+  },
+  "/readyz": {
+   "get": {
+    "operationId": "readyz_readyz_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Readyz",
     "tags": [
      "ops"
     ]

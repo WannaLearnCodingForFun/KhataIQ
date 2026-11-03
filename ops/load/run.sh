@@ -25,7 +25,7 @@ psql "$PG_ADMIN_URL" -qc "DROP DATABASE IF EXISTS $DB" -c "CREATE DATABASE $DB"
 alembic upgrade head >/dev/null
 python scripts/seed_dev.py
 python ops/load/prepare.py
-redis-cli -u "$KHATAIQ_REDIS_URL" flushdb >/dev/null
+python -c "import os, redis; redis.Redis.from_url(os.environ['KHATAIQ_REDIS_URL']).flushdb()"
 
 pids=()
 cleanup() { kill "${pids[@]}" 2>/dev/null || true; wait 2>/dev/null || true; }

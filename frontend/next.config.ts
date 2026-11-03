@@ -6,6 +6,7 @@ const API_URL = process.env.KHATAIQ_API_URL ?? "http://localhost:8000";
 
 const config: NextConfig = {
   reactStrictMode: true,
+  output: "standalone", // a self-contained server for the Docker image
   images: { unoptimized: true },
   async rewrites() {
     return [
