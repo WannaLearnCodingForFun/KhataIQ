@@ -14,7 +14,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from khataiq.core.ledger import Txn, fingerprint, normalize_narration, reconcile
-from khataiq.models import Account, Transaction, Upload
+from khataiq.models import Account, Transaction, Upload, UploadRow
 from khataiq.models.enums import FlagKind, UploadStatus
 from khataiq.pipeline.enrich import channel_of, counterparty_key
 from khataiq.pipeline.parsers import get_parser
@@ -64,23 +64,34 @@ def stage_parse(s: Session, upload: Upload) -> StageResult:
 
 def stage_persist(s: Session, upload: Upload) -> StageResult:
     """Insert every row; rows already present (same account and fingerprint, e.g. from an
-    overlapping earlier statement) are skipped by ON CONFLICT DO NOTHING."""
+    overlapping earlier statement) are skipped by ON CONFLICT DO NOTHING. Then link every line
+    of this statement to its transaction in upload_rows, whoever inserted it."""
     account, statement = load_statement(s, upload)
-    values = []
+    values: list[dict[str, object]] = []
+    prints: list[str] = []
     for row in statement.rows:
         norm = normalize_narration(row.narration)
         channel = channel_of(norm)
+        prints.append(fingerprint(as_txn(account.id, row)))
         values.append({
             "org_id": upload.org_id, "account_id": account.id, "upload_id": upload.id,
             "txn_date": row.txn_date, "amount_paise": row.amount_paise,
             "direction": row.direction, "balance_after_paise": row.balance_after_paise,
             "narration": row.narration, "narration_norm": norm, "channel": channel,
             "utr": row.utr, "counterparty_key": counterparty_key(row.narration, channel),
-            "fingerprint": fingerprint(as_txn(account.id, row)), "source_line": row.line_no,
+            "fingerprint": prints[-1], "source_line": row.line_no,
         })
-    if values:
-        s.execute(insert(Transaction).values(values)
-                  .on_conflict_do_nothing(index_elements=["account_id", "fingerprint"]))
+    if not values:
+        return StageResult.CONTINUE
+    s.execute(insert(Transaction).values(values)
+              .on_conflict_do_nothing(index_elements=["account_id", "fingerprint"]))
+    ids = dict(s.execute(select(Transaction.fingerprint, Transaction.id).where(
+        Transaction.account_id == account.id, Transaction.fingerprint.in_(prints))).all())
+    s.execute(insert(UploadRow).values([
+        {"upload_id": upload.id, "line_no": row.line_no, "txn_id": ids[fp],
+         "org_id": upload.org_id}
+        for row, fp in zip(statement.rows, prints, strict=True)
+    ]).on_conflict_do_nothing(index_elements=["upload_id", "line_no"]))
     return StageResult.CONTINUE
 
 

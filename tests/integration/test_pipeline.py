@@ -176,6 +176,11 @@ def test_overlapping_statements_add_no_duplicate_transactions(owner_session: Ses
         "SELECT txn_date, amount_paise, narration FROM transactions "
         "GROUP BY 1, 2, 3 HAVING count(*) > 1")).all()
     assert dupes == []
+    # ...but both statements are linked to the overlapping days' rows.
+    shared = owner_session.execute(text(
+        "SELECT count(*) FROM (SELECT txn_id FROM upload_rows GROUP BY txn_id "
+        "HAVING count(DISTINCT upload_id) = 2) t")).scalar_one()
+    assert shared == len([r for r in october if r[0] >= date(2026, 10, 15)])
 
 
 # ------------------------------------------------------------------ failures and retries

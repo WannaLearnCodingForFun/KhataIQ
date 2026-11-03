@@ -94,7 +94,9 @@ class Outcome(StrEnum):
     DEAD = "dead"
 
 
-# Filled in by khataiq.pipeline.stages; kept here so the runner has no import of stage code.
+# The order stages run in. Each is registered by the module that implements it; PIPELINE is
+# the registered subset, always in this order.
+STAGE_ORDER = ["parse", "persist", "reconcile", "classify", "evidence", "metrics"]
 PIPELINE: list[str] = []
 STAGE_FUNCTIONS: dict[str, StageFn] = {}
 # Upload status to fall back to when an admin retries a stage that died.
@@ -102,8 +104,11 @@ STATUS_BEFORE: dict[str, UploadStatus] = {}
 
 
 def register_stage(name: str, fn: StageFn, status_before: UploadStatus) -> None:
+    if name not in STAGE_ORDER:
+        raise ValueError(f"unknown stage {name!r}")
     if name not in PIPELINE:
         PIPELINE.append(name)
+        PIPELINE.sort(key=STAGE_ORDER.index)
     STAGE_FUNCTIONS[name] = fn
     STATUS_BEFORE[name] = status_before
 

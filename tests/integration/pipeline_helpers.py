@@ -63,7 +63,7 @@ def statement(start: date, days: int, opening: int = 5_000_000) -> bytes:
     return render_demo_csv(opening, daily_rows(start, days))
 
 
-DATA_TABLES = ["uploads", "transactions", "flags", "flag_evidence"]
+DATA_TABLES = ["uploads", "transactions", "upload_rows", "flags", "flag_evidence"]
 
 
 def state_digest(s: Session) -> dict[str, tuple[int, str]]:

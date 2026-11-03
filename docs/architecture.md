@@ -53,6 +53,7 @@ Money columns are `BIGINT` paise. All tables have `created_at timestamptz defaul
 | outbox | id, org_id, topic, payload, created_at, published_at | Written in the same transaction as the upload |
 | pipeline_runs | id, org_id, upload_id, stage, status, attempts, error, started_at, finished_at | `UNIQUE(upload_id, stage, attempt_no)`; status queued/running/succeeded/failed/dead |
 | transactions | id, org_id, account_id, upload_id, txn_date, amount_paise, direction, balance_after_paise, narration, narration_norm, channel, utr, counterparty_key, fingerprint, source_line | `UNIQUE(account_id, fingerprint)`; `CHECK(amount_paise > 0)`; indexes below |
+| upload_rows | upload_id, line_no, txn_id, org_id | `PK(upload_id, line_no)`; every statement line → its transaction, including rows first stored from an overlapping statement. The ledger = transactions in ≥ 1 reconciled upload |
 | txn_labels | id, org_id, txn_id, label, method, model_version, confidence, created_by, created_at | Append-only; method rule/model/human; view `current_txn_labels` picks latest, human > rule > model |
 | evidence_links | id, org_id, business_id, kind, txn_a, txn_b, level, rule_id, rule_version, details, run_id | kind self_transfer/reversal/duplicate; level verified/inferred/unresolved |
 | flags | id, org_id, business_id, kind, status, summary, total_paise, rule_id, rule_version, resolved_by, resolved_at, resolution_note | kind cycle/unresolved_transfer/needs_review_upload; status open/confirmed/dismissed |
@@ -81,11 +82,13 @@ request transaction; workers set it per job. The migration role owns tables; the
    publish is harmless because stages are idempotent.
 3. **Parse:** `get_parser(bank, format)` → `ParsedStatement`. Parser errors → upload `failed` with line no.
 4. **Normalize + persist:** each row → `transactions` with fingerprint; `INSERT … ON CONFLICT
-   (account_id, fingerprint) DO NOTHING`.
+   (account_id, fingerprint) DO NOTHING`; then every line → `upload_rows`, so a row shared by two
+   statements is linked to both.
 5. **Reconcile (gate):** `core.ledger.reconcile` on this upload's rows in statement order. Fail → upload
    `needs_review`, store reason + break line, open a `needs_review_upload` flag, stop.
 6. **Classify:** rule labels, then model labels for rows rules didn't cover.
-7. **Evidence:** runs per **business** (all its accounts), not per upload: self-transfers, reversals,
+7. **Evidence:** runs per **business** (all its accounts, only transactions backed by a reconciled
+   upload), not per upload: self-transfers, reversals,
    duplicates, cycles. Writes a new `run_id`; earlier runs stay for history.
 8. **Metrics:** recompute monthly metrics for the business under a new `metric_runs` row.
 

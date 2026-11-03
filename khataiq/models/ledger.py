@@ -4,7 +4,16 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from sqlalchemy import CHAR, CheckConstraint, ForeignKey, Index, Integer, UniqueConstraint, text
+from sqlalchemy import (
+    CHAR,
+    CheckConstraint,
+    ForeignKey,
+    Index,
+    Integer,
+    PrimaryKeyConstraint,
+    UniqueConstraint,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from khataiq.db import Base
@@ -39,6 +48,21 @@ class Transaction(Base):
         Index("ix_transactions_org_amount_date", "org_id", "amount_paise", "txn_date"),
         Index("ix_transactions_utr", "utr", postgresql_where=text("utr IS NOT NULL")),
     )
+
+
+class UploadRow(Base):
+    """Which statements contain which transactions. A transaction is stored once per account
+    (by fingerprint), but overlapping statements both contain it; this table records every
+    occurrence, so "is this row backed by a reconciled statement?" has an exact answer."""
+
+    __tablename__ = "upload_rows"
+
+    upload_id: Mapped[int] = mapped_column(ForeignKey("uploads.id"))
+    line_no: Mapped[int] = mapped_column(Integer)
+    txn_id: Mapped[int] = mapped_column(ForeignKey("transactions.id"), index=True)
+    org_id: Mapped[int] = org_id_column()
+
+    __table_args__ = (PrimaryKeyConstraint("upload_id", "line_no"),)
 
 
 class TxnLabelRow(Base):
