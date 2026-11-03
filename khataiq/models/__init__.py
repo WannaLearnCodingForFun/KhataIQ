@@ -2,6 +2,7 @@
 
 from khataiq.models.assessments import Assessment
 from khataiq.models.audit import AuditLog
+from khataiq.models.auth import RefreshToken
 from khataiq.models.evidence import EvidenceLink, Flag, FlagEvidence
 from khataiq.models.ledger import Transaction, TxnLabelRow
 from khataiq.models.metrics import MetricRun, MonthlyMetric
@@ -20,6 +21,7 @@ __all__ = [
     "MetricRun",
     "MonthlyMetric",
     "Organization",
+    "RefreshToken",
     "Outbox",
     "PipelineRun",
     "Transaction",
