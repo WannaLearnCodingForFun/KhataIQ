@@ -45,6 +45,7 @@ class TxnFilters:
     label: TxnLabel | None = None
     evidence_level: str | None = None  # verified | inferred | unresolved | none
     direction: str | None = None
+    min_paise: int | None = None
 
 
 def evidence_by_txn(s: Session, business_id: int) -> dict[int, TxnEvidence]:
@@ -112,6 +113,8 @@ def list_transactions(s: Session, p: Principal, business_id: int, f: TxnFilters,
         query = query.where(Transaction.account_id == f.account_id)
     if f.direction:
         query = query.where(Transaction.direction == f.direction)
+    if f.min_paise:
+        query = query.where(Transaction.amount_paise >= f.min_paise)
     if f.label:
         query = query.where(current_labels.c.label == f.label)
     if f.evidence_level == "none":

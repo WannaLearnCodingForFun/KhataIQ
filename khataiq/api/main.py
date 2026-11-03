@@ -13,6 +13,7 @@ from khataiq.api.routes import (
     assessments,
     auth,
     businesses,
+    copilot,
     evidence,
     ledger,
     uploads,
@@ -48,6 +49,7 @@ def create_app() -> FastAPI:
     app.include_router(ledger.router)
     app.include_router(evidence.router)
     app.include_router(assessments.router)
+    app.include_router(copilot.router)
     app.include_router(admin.router)
     return app
 

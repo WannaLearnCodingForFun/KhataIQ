@@ -115,8 +115,8 @@ and `tests/test_parsers.py`.
   "what this does and doesn't show" section.
 
 ## M9 — Copilot (`docs/specs/copilot.md`)
-- [ ] **M9.1** Tool functions in `copilot/tools.py`, org-scoped and read-only.
-- [ ] **M9.2** `POST /v1/businesses/{id}/copilot` with the grounding checker and one retry.
+- [x] **M9.1** Tool functions in `copilot/tools.py`, org-scoped and read-only.
+- [x] **M9.2** `POST /v1/businesses/{id}/copilot` with the grounding checker and one retry.
   - Tests use a fake LLM client: an answer citing an unknown txn id is rejected; a figure not present in
     tool results is rejected; a clean answer passes.
 
