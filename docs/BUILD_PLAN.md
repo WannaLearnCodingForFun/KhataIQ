@@ -39,15 +39,15 @@ and `tests/test_parsers.py`.
   runs `SET LOCAL app.org_id`. Seed script `scripts/seed_dev.py` (1 org, 3 users of each role, 2 businesses).
 
 ## M2 — Auth and core resources
-- [ ] **M2.1** `security.py`: argon2 hashing, JWT issue/verify, refresh-token rotation with family
+- [x] **M2.1** `security.py`: argon2 hashing, JWT issue/verify, refresh-token rotation with family
   revocation (table `refresh_tokens`: id, user_id, family_id, token_hash, expires_at, revoked_at).
   - Unit tests: expired token rejected; tampered token rejected; reused rotated refresh token revokes family.
-- [ ] **M2.2** Routes: `POST /v1/auth/login`, `POST /v1/auth/refresh`, `POST /v1/auth/logout`,
+- [x] **M2.2** Routes: `POST /v1/auth/login`, `POST /v1/auth/refresh`, `POST /v1/auth/logout`,
   `GET /v1/me`. Dependency `current_user` + `require_role(...)`.
-- [ ] **M2.3** Routes for businesses and accounts (spec in `docs/specs/api.md`), service layer, audit
+- [x] **M2.3** Routes for businesses and accounts (spec in `docs/specs/api.md`), service layer, audit
   entries for every create/update.
   - Integration tests: owner can't see another owner's business; officer sees all in org; cross-org = 404.
-- [ ] **M2.4** Rate limiting middleware (Redis token bucket, limits in architecture §7). Problem+json
+- [x] **M2.4** Rate limiting middleware (Redis token bucket, limits in architecture §7). Problem+json
   error handler. Request-ID middleware.
   - Test: 61st request in a minute returns 429 with `Retry-After`.
 

@@ -1,11 +1,39 @@
-"""FastAPI application entry point. Run with: uvicorn khataiq.api.main:app --reload"""
+"""FastAPI application. Run with: uvicorn khataiq.api.main:app --reload"""
+
+from __future__ import annotations
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="KhataIQ", version="0.1.0")
+from khataiq.api import problems
+from khataiq.api.middleware import RequestIdMiddleware
+from khataiq.api.routes import auth, businesses
+from khataiq.config import get_settings
 
 
-@app.get("/healthz")
-def healthz() -> dict[str, str]:
-    """Liveness probe: the process is up. It deliberately does not touch the database."""
-    return {"status": "ok"}
+def create_app() -> FastAPI:
+    settings = get_settings()
+    app = FastAPI(title="KhataIQ", version="0.1.0",
+                  description="Cash-flow evidence platform for small-business lending.")
+    problems.install(app)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins,
+        allow_credentials=True,  # the refresh cookie
+        allow_methods=["GET", "POST", "PATCH", "DELETE"],
+        allow_headers=["Authorization", "Content-Type", "Idempotency-Key", "X-Request-ID"],
+        expose_headers=["X-Request-ID", "Retry-After"],
+    )
+    app.add_middleware(RequestIdMiddleware)
+
+    @app.get("/healthz", tags=["ops"])
+    def healthz() -> dict[str, str]:
+        """Liveness probe: the process is up. It deliberately does not touch the database."""
+        return {"status": "ok"}
+
+    app.include_router(auth.router)
+    app.include_router(businesses.router)
+    return app
+
+
+app = create_app()

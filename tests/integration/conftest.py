@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import os
 from collections.abc import Iterator
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import pytest
 from alembic import command
@@ -21,6 +23,9 @@ from sqlalchemy.orm import Session
 
 from khataiq.config import get_settings
 from khataiq.db import Base, get_engine, get_sessionmaker
+
+if TYPE_CHECKING:
+    from fastapi.testclient import TestClient
 
 TEST_DB_URL = os.environ.get("KHATAIQ_TEST_DATABASE_URL")
 APP_PASSWORD = "khataiq_app"
@@ -110,3 +115,78 @@ def owner_session(owner_engine: Engine) -> Iterator[Session]:
     """A session as the table owner: bypasses RLS, for arranging test data."""
     with Session(owner_engine) as session:
         yield session
+
+
+# ------------------------------------------------------------------ API fixtures
+
+TEST_REDIS_URL = os.environ.get("KHATAIQ_TEST_REDIS_URL")
+PASSWORD = "correct horse battery staple"
+
+
+@pytest.fixture(scope="session")
+def password_hash() -> str:
+    from khataiq.security import hash_password
+
+    return hash_password(PASSWORD)  # argon2 is slow on purpose; hash once per session
+
+
+@pytest.fixture()
+def redis_available(monkeypatch: pytest.MonkeyPatch) -> Iterator[bool]:
+    """Point the rate limiter at the test Redis (flushed), or at nothing so it fails open."""
+    from khataiq.ratelimit import get_limiter
+
+    monkeypatch.setenv("KHATAIQ_REDIS_URL", TEST_REDIS_URL or "redis://127.0.0.1:1/0")
+    get_settings.cache_clear()
+    get_limiter.cache_clear()
+    if TEST_REDIS_URL:
+        get_limiter().client.flushdb()
+    yield TEST_REDIS_URL is not None
+    get_settings.cache_clear()
+    get_limiter.cache_clear()
+
+
+@pytest.fixture()
+def api(migrated: None, redis_available: bool) -> Iterator[TestClient]:
+    from fastapi.testclient import TestClient
+
+    from khataiq.api.main import create_app
+
+    with TestClient(create_app(), base_url="https://testserver") as client:
+        yield client
+
+
+@dataclass
+class People:
+    """Two orgs. Org A: two owners, an officer, an admin. Org B: one owner."""
+
+    org_a: int
+    org_b: int
+    owner1: str = "owner1@a.example.com"
+    owner2: str = "owner2@a.example.com"
+    officer: str = "officer@a.example.com"
+    admin: str = "admin@a.example.com"
+    owner_b: str = "owner@b.example.com"
+
+
+@pytest.fixture()
+def people(owner_session: Session, password_hash: str) -> People:
+    from khataiq.models.enums import UserRole
+    from tests.integration import factories as f
+
+    a, b = f.org(owner_session), f.org(owner_session)
+    p = People(org_a=a.id, org_b=b.id)
+    for email, org_id, role in [
+        (p.owner1, a.id, UserRole.OWNER), (p.owner2, a.id, UserRole.OWNER),
+        (p.officer, a.id, UserRole.OFFICER), (p.admin, a.id, UserRole.ADMIN),
+        (p.owner_b, b.id, UserRole.OWNER),
+    ]:
+        f.user(owner_session, org_id, role, email=email, password_hash=password_hash)
+    owner_session.commit()
+    return p
+
+
+def login(client: TestClient, email: str, password: str = PASSWORD) -> dict[str, str]:
+    """Log in and return the Authorization header for that user."""
+    response = client.post("/v1/auth/login", json={"email": email, "password": password})
+    assert response.status_code == 200, response.text
+    return {"Authorization": f"Bearer {response.json()['access_token']}"}
