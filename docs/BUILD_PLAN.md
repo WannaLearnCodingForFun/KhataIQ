@@ -135,6 +135,6 @@ and `tests/test_parsers.py`.
   hardware, target p95, measured p95 — report honestly, even if it misses).
 - [x] **M11.3** Dockerfiles, `docker-compose.prod.yml`, CI: integration tests with service containers,
   `pip-audit`, image build; deploy notes in `docs/deploy.md`.
-- [ ] **M11.4** README: one-paragraph pitch, architecture diagram (Mermaid), screenshots, how to run in
+- [x] **M11.4** README: one-paragraph pitch, architecture diagram (Mermaid), screenshots, how to run in
   one command, results tables linked from `docs/results/`, design decisions, limitations.
   Record a 3-minute demo script in `docs/demo.md`.
