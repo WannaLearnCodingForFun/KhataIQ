@@ -31,7 +31,7 @@ and `tests/test_parsers.py`.
   - First Alembic migration creates everything; `alembic upgrade head` then `downgrade base` both work.
   - Integration test: inserting a duplicate `(account_id, fingerprint)` raises `IntegrityError`.
   - Integration test: `amount_paise = 0` violates the CHECK.
-- [ ] **M1.2** Roles and RLS migration: create `khataiq_app` role; enable RLS + policies on every tenant
+- [x] **M1.2** Roles and RLS migration: create `khataiq_app` role; enable RLS + policies on every tenant
   table; revoke UPDATE/DELETE on `audit_log` from the app role.
   - Integration test: with `app.org_id = 1`, selecting a row of org 2 returns nothing.
   - Integration test: `UPDATE audit_log` as the app role fails with a permission error.
