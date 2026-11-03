@@ -19,6 +19,7 @@ dev = ["pytest>=8", "hypothesis>=6", "ruff>=0.6", "mypy>=1.11", "httpx>=0.27",
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+markers = ["integration: needs Postgres (KHATAIQ_TEST_DATABASE_URL); skipped when unset"]
 
 [tool.ruff]
 line-length = 100
@@ -27,6 +28,10 @@ extend-exclude = ["alembic/versions"]
 [tool.ruff.lint]
 # Pin the rule set so a ruff upgrade can't silently change what CI enforces.
 select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+# The repo's alembic/ folder holds migrations; the `alembic` package is the library.
+known-third-party = ["alembic"]
 
 [tool.mypy]
 python_version = "3.11"

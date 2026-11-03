@@ -26,7 +26,7 @@ and `tests/test_parsers.py`.
   - Golden-file test; a scanned/no-text PDF raises `ParseError(0, "no text layer")`.
 
 ## M1 — Database schema
-- [ ] **M1.1** ORM models in `khataiq/models/` for every table in architecture §4, with typed
+- [x] **M1.1** ORM models in `khataiq/models/` for every table in architecture §4, with typed
   `Mapped[...]` columns, enums as Postgres enums, all constraints and indexes.
   - First Alembic migration creates everything; `alembic upgrade head` then `downgrade base` both work.
   - Integration test: inserting a duplicate `(account_id, fingerprint)` raises `IntegrityError`.
