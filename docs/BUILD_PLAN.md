@@ -70,7 +70,7 @@ and `tests/test_parsers.py`.
   - Test: running the whole chain twice on the same upload leaves identical DB state (row counts + hashes).
   - Test: an unbalanced fixture stops at reconcile, sets `needs_review`, opens a flag, runs nothing after.
   - Test: overlapping statements (Oct 1–31, then Oct 15–Nov 15) produce no duplicate transactions.
-- [ ] **M4.4** Admin dead-letter endpoints: list dead runs, retry one.
+- [x] **M4.4** Admin dead-letter endpoints: list dead runs, retry one.
   - Integration test (CI only): a real worker with Redis processes a fixture end to end.
 
 ## M5 — Evidence engine (`docs/specs/evidence-engine.md`)

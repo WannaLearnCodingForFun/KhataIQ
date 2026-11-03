@@ -5,9 +5,10 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+import khataiq.pipeline.stages  # noqa: F401  (registers pipeline stages for admin retries)
 from khataiq.api import problems
 from khataiq.api.middleware import BodySizeLimitMiddleware, RequestIdMiddleware
-from khataiq.api.routes import auth, businesses, uploads
+from khataiq.api.routes import admin, auth, businesses, uploads
 from khataiq.config import get_settings
 
 
@@ -36,6 +37,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router)
     app.include_router(businesses.router)
     app.include_router(uploads.router)
+    app.include_router(admin.router)
     return app
 
 
