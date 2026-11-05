@@ -43,7 +43,8 @@ services:
     volumes: [redisdata:/data]
 
   minio:
-    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    build: ops/minio   # built from source: MinIO no longer publishes images
+    image: khataiq-minio:RELEASE.2025-09-07T16-13-09Z
     restart: unless-stopped
     command: server /data
     environment:
