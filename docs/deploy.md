@@ -4,6 +4,9 @@ The production layout is one host running `docker-compose.prod.yml`: PostgreSQL 
 a one-off `migrate` job, the API, a Celery worker, Celery beat and the web frontend. Prometheus and
 Grafana are available under the `monitoring` profile.
 
+MinIO no longer publishes container images, so `ops/minio/Dockerfile` builds a pinned release from
+source (and checks the tag's commit). The first `up --build` takes a few extra minutes for it.
+
 ## 1. Configure
 
 ```bash

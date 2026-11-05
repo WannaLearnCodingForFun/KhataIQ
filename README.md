@@ -29,7 +29,7 @@ data. Export `LLM_API_KEY` first to enable the copilot. A 3-minute walkthrough i
 <summary>Development setup (without the Docker app images)</summary>
 
 ```bash
-docker compose up -d                 # Postgres 16, Redis 7, MinIO
+docker compose up -d                 # Postgres 16, Redis 7, MinIO (built from source on first run)
 pip install -e '.[dev]'
 alembic upgrade head && python scripts/seed_dev.py
 uvicorn khataiq.api.main:app --reload

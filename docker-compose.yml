@@ -18,7 +18,8 @@ services:
     ports: ["6379:6379"]
 
   minio:
-    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
+    build: ops/minio   # built from source: MinIO no longer publishes images
+    image: khataiq-minio:RELEASE.2025-09-07T16-13-09Z
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: khataiq
